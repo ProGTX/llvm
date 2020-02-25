@@ -12,7 +12,7 @@ add_library(piapi STATIC
   "${pi_include_dir}/pi.hpp"
   "${CMAKE_SOURCE_DIR}/src/pi.cpp"
 )
-target_include_directories(piapi PRIVATE "${pi_include_dir}")
+target_include_directories(piapi PUBLIC "${pi_include_dir}")
 
 option(PI_OPENCL_HEADERS "Should OpenCL headers be included" ON)
 if(PI_OPENCL_HEADERS)
@@ -20,13 +20,28 @@ if(PI_OPENCL_HEADERS)
   set(opencl_ext_include_dir "${CMAKE_SOURCE_DIR}/../include")
 
   # Do not link against the OpenCL::OpenCL library, just need the headers
-  target_include_directories(piapi PRIVATE
+  target_include_directories(piapi PUBLIC
     "${opencl_ext_include_dir}"
     "${OpenCL_INCLUDE_DIR}"
   )
-  target_compile_definitions(piapi PRIVATE CL_TARGET_OPENCL_VERSION=210)
+  target_compile_definitions(piapi PUBLIC CL_TARGET_OPENCL_VERSION=210)
+
+  install(DIRECTORY "${opencl_ext_include_dir}"
+    DESTINATION . COMPONENT headers
+    FILES_MATCHING
+      PATTERN "cl_usm_ext.h"
+      PATTERN "__spirv" EXCLUDE
+      PATTERN "sycl" EXCLUDE
+  )
 endif()
 
+install(DIRECTORY "${pi_include_dir}"
+  DESTINATION . COMPONENT headers
+  FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "*.hpp"
+    PATTERN "*.def" EXCLUDE
+)
 install(TARGETS piapi
   ARCHIVE DESTINATION "lib" COMPONENT piapi
   RUNTIME DESTINATION "bin" COMPONENT piapi
