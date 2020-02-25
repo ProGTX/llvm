@@ -10,7 +10,7 @@
 
 #include <pi/pi.hpp>
 
-namespace detail {
+namespace pi {
 
 /// The plugin class provides a unified interface to the underlying low-level
 /// runtimes for the device-agnostic SYCL runtime.
@@ -79,4 +79,4 @@ private:
 
 }; // class plugin
 
-} // namespace detail
+} // namespace pi

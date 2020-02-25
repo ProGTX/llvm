@@ -29,14 +29,15 @@ struct trace_event_data_t;
 }
 #endif
 
-class plugin;
-}
-
 enum class PiApiKind {
 #define _PI_API(api) api,
 #include <pi/pi.def>
 };
+
 namespace pi {
+
+// Forward declaration of the detail plugin type
+class plugin;
 
 #ifdef SYCL_RT_OS_WINDOWS
 #define OPENCL_PLUGIN_NAME "pi_opencl.dll"
@@ -118,10 +119,10 @@ template <class To, class From> To cast(From value);
 // Holds the PluginInformation for the plugin that is bound.
 // Currently a global variable is used to store OpenCL plugin information to be
 // used with SYCL Interoperability Constructors.
-extern std::shared_ptr<detail::plugin> GlobalPlugin;
+extern std::shared_ptr<pi::plugin> GlobalPlugin;
 
 // Performs PI one-time initialization.
-std::vector<detail::plugin> initialize();
+std::vector<pi::plugin> initialize();
 
 // Utility Functions to get Function Name for a PI Api.
 template <PiApiKind PiApiOffset> struct PiFuncInfo {};

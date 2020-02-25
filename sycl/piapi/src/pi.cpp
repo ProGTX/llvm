@@ -11,7 +11,7 @@
 ///
 /// \ingroup sycl_pi
 
-#include "plugin.hpp"
+#include <pi/plugin.hpp>
 #include <pi/pi.hpp>
 
 #include <bitset>
@@ -192,8 +192,8 @@ bool bindPlugin(void *Library, PiPlugin *PluginInformation) {
 // TODO: Currently only accepting OpenCL and CUDA plugins. Edit it to identify
 // and load other kinds of plugins, do the required changes in the
 // findPlugins, loadPlugin and bindPlugin functions.
-std::vector<detail::plugin> initialize() {
-  std::vector<detail::plugin> Plugins;
+std::vector<pi::plugin> initialize() {
+  std::vector<pi::plugin> Plugins;
 
   if (!useBackend(SYCL_BE_PI_OPENCL) && !useBackend(SYCL_BE_PI_CUDA)) {
     die("Unknown SYCL_BE");
@@ -222,14 +222,14 @@ std::vector<detail::plugin> initialize() {
     if (useBackend(SYCL_BE_PI_OPENCL) &&
         PluginNames[I].find("opencl") != std::string::npos) {
       // Use the OpenCL plugin as the GlobalPlugin
-      GlobalPlugin = std::make_shared<detail::plugin>(PluginInformation);
+      GlobalPlugin = std::make_shared<pi::plugin>(PluginInformation);
     }
     if (useBackend(SYCL_BE_PI_CUDA) &&
         PluginNames[I].find("cuda") != std::string::npos) {
       // Use the CUDA plugin as the GlobalPlugin
-      GlobalPlugin = std::make_shared<detail::plugin>(PluginInformation);
+      GlobalPlugin = std::make_shared<pi::plugin>(PluginInformation);
     }
-    Plugins.push_back(detail::plugin(PluginInformation));
+    Plugins.push_back(pi::plugin(PluginInformation));
   }
 
 #ifdef XPTI_ENABLE_INSTRUMENTATION
