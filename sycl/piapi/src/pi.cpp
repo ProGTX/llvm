@@ -49,6 +49,7 @@ constexpr const char *GVerStr = "sycl 1.0";
 namespace pi {
 
 bool XPTIInitDone = false;
+std::shared_ptr<pi::plugin> GlobalPlugin;
 
 std::string platformInfoToString(pi_platform_info info) {
   switch (info) {

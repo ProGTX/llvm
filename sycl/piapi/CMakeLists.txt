@@ -6,13 +6,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(pi_include_dir "${CMAKE_SOURCE_DIR}/include")
+set(pi_source_dir "${CMAKE_SOURCE_DIR}/src")
 
 add_library(piapi STATIC
   "${pi_include_dir}/pi/pi.h"
   "${pi_include_dir}/pi/pi.hpp"
-  "${CMAKE_SOURCE_DIR}/src/pi.cpp"
+  "${pi_source_dir}/pi.cpp"
+  "$<$<PLATFORM_ID:Windows>:${pi_source_dir}/windows_pi.cpp>"
+  "$<$<OR:$<PLATFORM_ID:Linux>,$<PLATFORM_ID:Darwin>>:${pi_source_dir}/posix_pi.cpp>"
 )
 target_include_directories(piapi PUBLIC "${pi_include_dir}")
+
+target_link_libraries(piapi PUBLIC ${CMAKE_DL_LIBS})
 
 option(PI_OPENCL_HEADERS "Should OpenCL headers be included" ON)
 if(PI_OPENCL_HEADERS)
