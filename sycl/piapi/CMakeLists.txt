@@ -52,4 +52,6 @@ install(TARGETS piapi
   RUNTIME DESTINATION "bin" COMPONENT piapi
 )
 
+enable_testing()
+
 add_subdirectory(plugins)
