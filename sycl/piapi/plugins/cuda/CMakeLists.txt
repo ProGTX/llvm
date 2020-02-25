@@ -1,3 +1,10 @@
+cmake_minimum_required(VERSION 3.7)
+project(piapi_cuda VERSION 0.1 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 message(STATUS "Including the PI API CUDA backend.")
 
  # cannot rely on cmake support for CUDA; it assumes runtime API is being used.
