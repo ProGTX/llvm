@@ -21,8 +21,6 @@ add_dependencies(pi_opencl
   ocl-headers
 )
 
-add_dependencies(sycl-toolchain pi_opencl)
-
 set_target_properties(pi_opencl PROPERTIES LINKER_LANGUAGE CXX)
 
 #preprocessor definitions for compiling a target's sources. We do not need it for pi_opencl
@@ -33,8 +31,6 @@ target_link_libraries( pi_opencl
     PRIVATE OpenCL::Headers
     PRIVATE ${OpenCL_LIBRARIES}
 )
-
-add_common_options(pi_opencl)
 
 install(TARGETS pi_opencl
     LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT pi_opencl
