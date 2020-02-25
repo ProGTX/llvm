@@ -16,7 +16,7 @@
 /// \ingroup sycl_pi_ocl
 
 #include "CL/opencl.h"
-#include <CL/sycl/detail/pi.h>
+#include <pi.h>
 
 #include <cassert>
 #include <cstring>

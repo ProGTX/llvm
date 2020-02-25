@@ -4,13 +4,15 @@
 #cmake_policy(SET CMP0057 NEW)
 #include(AddLLVM)
 
+set(pi_include_dir "../../include")
+
 # Plugin for OpenCL
 # Create Shared library for libpi_opencl.so.
 #TODO: remove dependency on pi.hpp in sycl project.
 #TODO: Currently, the pi.hpp header is common between sycl and plugin library sources. 
 #This can be changed by copying the pi.hpp file in the plugins project.
 add_library(pi_opencl SHARED
-  "${sycl_inc_dir}/CL/sycl/detail/pi.h"
+  "${pi_include_dir}/pi.h"
   "pi_opencl.cpp"
   )
 
@@ -24,7 +26,7 @@ add_dependencies(sycl-toolchain pi_opencl)
 set_target_properties(pi_opencl PROPERTIES LINKER_LANGUAGE CXX)
 
 #preprocessor definitions for compiling a target's sources. We do not need it for pi_opencl
-target_include_directories(pi_opencl PRIVATE "${sycl_inc_dir}")
+target_include_directories(pi_opencl PRIVATE "${pi_include_dir}")
 
 #link pi_opencl with OpenCL headers and ICD Loader.
 target_link_libraries( pi_opencl

@@ -12,7 +12,7 @@
 /// \ingroup sycl_pi
 
 #include <CL/sycl/detail/common.hpp>
-#include <CL/sycl/detail/pi.hpp>
+#include <pi.hpp>
 #include <detail/plugin.hpp>
 
 #include <bitset>

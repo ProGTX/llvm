@@ -15,7 +15,7 @@
 
 #include <CL/sycl/detail/common.hpp>
 #include <CL/sycl/detail/os_util.hpp>
-#include <CL/sycl/detail/pi.h>
+#include <pi.h>
 #include <sstream>
 
 #include <cassert>
@@ -34,7 +34,7 @@ namespace detail {
 
 enum class PiApiKind {
 #define _PI_API(api) api,
-#include <CL/sycl/detail/pi.def>
+#include <pi.def>
 };
 class plugin;
 namespace pi {
@@ -134,7 +134,7 @@ template <PiApiKind PiApiOffset> struct PiFuncInfo {};
       return MPlugin.PiFunctionTable.api;                                      \
     }                                                                          \
   };
-#include <CL/sycl/detail/pi.def>
+#include <pi.def>
 
 // Helper utilities for PI Tracing
 // The run-time tracing of PI calls.
