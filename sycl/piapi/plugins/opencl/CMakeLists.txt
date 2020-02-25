@@ -1,10 +1,3 @@
-cmake_minimum_required(VERSION 3.7)
-project(piapi_opencl VERSION 0.1 LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 #TODO:
 #1. Figure out why CMP0057 has to be set. Should have been taken care of earlier in the build
 #2. Use AddLLVM to modify the build and access config options
@@ -13,8 +6,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(OpenCL REQUIRED)
 
-set(pi_include_dir "../../include")
-set(opencl_ext_include_dir "../../../include")
+set(pi_include_dir "${CMAKE_SOURCE_DIR}/include")
+set(opencl_ext_include_dir "${CMAKE_SOURCE_DIR}/../include")
 
 # Plugin for OpenCL
 # Create Shared library for libpi_opencl.so.
