@@ -5,8 +5,6 @@
 #include(AddLLVM)
 
 find_package(OpenCL REQUIRED)
-
-set(pi_include_dir "${CMAKE_SOURCE_DIR}/include")
 set(opencl_ext_include_dir "${CMAKE_SOURCE_DIR}/../include")
 
 # Plugin for OpenCL

@@ -13,13 +13,14 @@
 
 #pragma once
 
-#include <CL/sycl/detail/common.hpp>
-#include <CL/sycl/detail/os_util.hpp>
 #include <pi.h>
-#include <sstream>
 
 #include <cassert>
+#include <iostream>
+#include <memory>
 #include <string>
+#include <sstream>
+#include <vector>
 
 #ifdef XPTI_ENABLE_INSTRUMENTATION
 // Forward declarations
@@ -28,15 +29,13 @@ struct trace_event_data_t;
 }
 #endif
 
-__SYCL_INLINE_NAMESPACE(cl) {
-namespace sycl {
-namespace detail {
+class plugin;
+}
 
 enum class PiApiKind {
 #define _PI_API(api) api,
 #include <pi.def>
 };
-class plugin;
 namespace pi {
 
 #ifdef SYCL_RT_OS_WINDOWS
@@ -119,10 +118,10 @@ template <class To, class From> To cast(From value);
 // Holds the PluginInformation for the plugin that is bound.
 // Currently a global variable is used to store OpenCL plugin information to be
 // used with SYCL Interoperability Constructors.
-extern std::shared_ptr<plugin> GlobalPlugin;
+extern std::shared_ptr<detail::plugin> GlobalPlugin;
 
 // Performs PI one-time initialization.
-vector_class<plugin> initialize();
+std::vector<detail::plugin> initialize();
 
 // Utility Functions to get Function Name for a PI Api.
 template <PiApiKind PiApiOffset> struct PiFuncInfo {};
@@ -167,20 +166,11 @@ void printArgs(Arg0 arg0, Args... args) {
 }
 } // namespace pi
 
-namespace RT = cl::sycl::detail::pi;
-
 // Want all the needed casts be explicit, do not define conversion
 // operators.
 template <class To, class From> To pi::cast(From value) {
   // TODO: see if more sanity checks are possible.
-  RT::assertion((sizeof(From) == sizeof(To)), "assert: cast failed size check");
+  pi::assertion((sizeof(From) == sizeof(To)), "assert: cast failed size check");
   return (To)(value);
 }
 
-} // namespace detail
-
-// For shortness of using PI from the top-level sycl files.
-namespace RT = cl::sycl::detail::pi;
-
-} // namespace sycl
-} // __SYCL_INLINE_NAMESPACE(cl)

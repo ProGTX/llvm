@@ -7,12 +7,9 @@
 //===----------------------------------------------------------------------===//
 
 #pragma once
-#include <CL/sycl/detail/common.hpp>
-#include <CL/sycl/detail/pi.hpp>
-#include <CL/sycl/stl.hpp>
 
-__SYCL_INLINE_NAMESPACE(cl) {
-namespace sycl {
+#include <pi.hpp>
+
 namespace detail {
 
 /// The plugin class provides a unified interface to the underlying low-level
@@ -23,7 +20,7 @@ class plugin {
 public:
   plugin() = delete;
 
-  plugin(RT::PiPlugin Plugin) : MPlugin(Plugin) {
+  plugin(pi::PiPlugin Plugin) : MPlugin(Plugin) {
     MPiEnableTrace = (std::getenv("SYCL_PI_TRACE") != nullptr);
   }
 
@@ -32,9 +29,11 @@ public:
   /// Checks return value from PI calls.
   ///
   /// \throw Exception if pi_result is not a PI_SUCCESS.
-  template <typename Exception = cl::sycl::runtime_error>
-  void checkPiResult(RT::PiResult pi_result) const {
-    CHECK_OCL_CODE_THROW(pi_result, Exception);
+  template <typename Exception>
+  void checkPiResult(pi::PiResult pi_result, const Exception& ex) const {
+    if(pi_result != 0) {
+      throw ex;
+    }
   }
 
   /// Calls the PiApi, traces the call, and returns the result.
@@ -48,17 +47,17 @@ public:
   ///
   /// \sa plugin::checkPiResult
   template <PiApiKind PiApiOffset, typename... ArgsT>
-  RT::PiResult call_nocheck(ArgsT... Args) const {
-    RT::PiFuncInfo<PiApiOffset> PiCallInfo;
+  pi::PiResult call_nocheck(ArgsT... Args) const {
+    pi::PiFuncInfo<PiApiOffset> PiCallInfo;
     if (MPiEnableTrace) {
       std::string FnName = PiCallInfo.getFuncName();
       std::cout << "---> " << FnName << "(" << std::endl;
-      RT::printArgs(Args...);
+      pi::printArgs(Args...);
     }
-    RT::PiResult R = PiCallInfo.getFuncPtr(MPlugin)(Args...);
+    pi::PiResult R = PiCallInfo.getFuncPtr(MPlugin)(Args...);
     if (MPiEnableTrace) {
       std::cout << ") ---> ";
-      RT::printArgs(R);
+      pi::printArgs(R);
     }
     return R;
   }
@@ -68,17 +67,16 @@ public:
   /// \throw cl::sycl::runtime_exception if the call was not successful.
   template <PiApiKind PiApiOffset, typename... ArgsT>
   void call(ArgsT... Args) const {
-    RT::PiResult Err = call_nocheck<PiApiOffset>(Args...);
-    checkPiResult(Err);
+    pi::PiResult Err = call_nocheck<PiApiOffset>(Args...);
+    checkPiResult(Err, std::runtime_error("Invalid PIAPI call"));
   }
   // TODO: Make this private. Currently used in program_manager to create a
   // pointer to PiProgram.
-  RT::PiPlugin MPlugin;
+  pi::PiPlugin MPlugin;
 
 private:
   bool MPiEnableTrace;
 
 }; // class plugin
+
 } // namespace detail
-} // namespace sycl
-} // __SYCL_INLINE_NAMESPACE(cl)

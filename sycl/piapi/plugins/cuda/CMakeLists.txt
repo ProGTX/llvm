@@ -8,8 +8,6 @@ find_package(CUDA 10.0 REQUIRED)
 
 add_library(cudadrv SHARED IMPORTED)
 
-set(pi_include_dir "${CMAKE_SOURCE_DIR}/include")
-
 set_target_properties(
   cudadrv PROPERTIES 
     IMPORTED_LOCATION             ${CUDA_CUDA_LIBRARY}

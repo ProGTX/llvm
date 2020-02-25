@@ -11,18 +11,17 @@
 ///
 /// \ingroup sycl_pi
 
-#include <CL/sycl/detail/common.hpp>
-#include <pi.hpp>
-#include <detail/plugin.hpp>
+#include "plugin.hpp"
 
 #include <bitset>
 #include <cstdarg>
+#include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <map>
-#include <stddef.h>
 #include <string>
 #include <sstream>
+#include <vector>
 
 #ifdef XPTI_ENABLE_INSTRUMENTATION
 // Include the headers necessary for emitting
@@ -30,9 +29,6 @@
 #include "xpti_trace_framework.h"
 #endif
 
-__SYCL_INLINE_NAMESPACE(cl) {
-namespace sycl {
-namespace detail {
 #ifdef XPTI_ENABLE_INSTRUMENTATION
 // Stream name being used for traces generated from the SYCL runtime
 constexpr const char *PICALL_STREAM_NAME = "sycl.pi";
@@ -149,13 +145,9 @@ bool useBackend(Backend TheBackend) {
   return TheBackend == getBackend();
 }
 
-// GlobalPlugin is a global Plugin used with Interoperability constructors that
-// use OpenCL objects to construct SYCL class objects.
-std::shared_ptr<plugin> GlobalPlugin;
-
 // Find the plugin at the appropriate location and return the location.
 // TODO: Change the function appropriately when there are multiple plugins.
-bool findPlugins(vector_class<std::string> &PluginNames) {
+bool findPlugins(std::vector<std::string> &PluginNames) {
   // TODO: Based on final design discussions, change the location where the
   // plugin must be searched; how to identify the plugins etc. Currently the
   // search is done for libpi_opencl.so/pi_opencl.dll file in LD_LIBRARY_PATH
@@ -199,8 +191,8 @@ bool bindPlugin(void *Library, PiPlugin *PluginInformation) {
 // TODO: Currently only accepting OpenCL and CUDA plugins. Edit it to identify
 // and load other kinds of plugins, do the required changes in the
 // findPlugins, loadPlugin and bindPlugin functions.
-vector_class<plugin> initialize() {
-  vector_class<plugin> Plugins;
+std::vector<detail::plugin> initialize() {
+  std::vector<detail::plugin> Plugins;
 
   if (!useBackend(SYCL_BE_PI_OPENCL) && !useBackend(SYCL_BE_PI_CUDA)) {
     die("Unknown SYCL_BE");
@@ -208,7 +200,7 @@ vector_class<plugin> initialize() {
 
   bool EnableTrace = (std::getenv("SYCL_PI_TRACE") != nullptr);
 
-  vector_class<std::string> PluginNames;
+  std::vector<std::string> PluginNames;
   findPlugins(PluginNames);
 
   if (PluginNames.empty() && EnableTrace)
@@ -229,14 +221,14 @@ vector_class<plugin> initialize() {
     if (useBackend(SYCL_BE_PI_OPENCL) &&
         PluginNames[I].find("opencl") != std::string::npos) {
       // Use the OpenCL plugin as the GlobalPlugin
-      GlobalPlugin = std::make_shared<plugin>(PluginInformation);
+      GlobalPlugin = std::make_shared<detail::plugin>(PluginInformation);
     }
     if (useBackend(SYCL_BE_PI_CUDA) &&
         PluginNames[I].find("cuda") != std::string::npos) {
       // Use the CUDA plugin as the GlobalPlugin
-      GlobalPlugin = std::make_shared<plugin>(PluginInformation);
+      GlobalPlugin = std::make_shared<detail::plugin>(PluginInformation);
     }
-    Plugins.push_back(plugin(PluginInformation));
+    Plugins.push_back(detail::plugin(PluginInformation));
   }
 
 #ifdef XPTI_ENABLE_INSTRUMENTATION
@@ -299,6 +291,3 @@ void assertion(bool Condition, const char *Message) {
 }
 
 } // namespace pi
-} // namespace detail
-} // namespace sycl
-} // __SYCL_INLINE_NAMESPACE(cl)
