@@ -13,7 +13,7 @@ set(opencl_ext_include_dir "${CMAKE_SOURCE_DIR}/../include")
 #TODO: Currently, the pi.hpp header is common between sycl and plugin library sources. 
 #This can be changed by copying the pi.hpp file in the plugins project.
 add_library(pi_opencl SHARED
-  "${pi_include_dir}/pi.h"
+  "${pi_include_dir}/pi/pi.h"
   "pi_opencl.cpp"
   )
 

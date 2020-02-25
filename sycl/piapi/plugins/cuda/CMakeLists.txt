@@ -15,8 +15,8 @@ set_target_properties(
 )
 
 add_library(pi_cuda SHARED
-  "${pi_include_dir}/pi.h"
-  "${pi_include_dir}/pi.hpp"
+  "${pi_include_dir}/pi/pi.h"
+  "${pi_include_dir}/pi/pi.hpp"
   "pi_cuda.hpp"
   "pi_cuda.cpp"
 )

@@ -12,6 +12,7 @@
 /// \ingroup sycl_pi
 
 #include "plugin.hpp"
+#include <pi/pi.hpp>
 
 #include <bitset>
 #include <cstdarg>

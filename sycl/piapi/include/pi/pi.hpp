@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <pi.h>
+#include <pi/pi.h>
 
 #include <cassert>
 #include <iostream>
@@ -34,7 +34,7 @@ class plugin;
 
 enum class PiApiKind {
 #define _PI_API(api) api,
-#include <pi.def>
+#include <pi/pi.def>
 };
 namespace pi {
 
@@ -133,7 +133,7 @@ template <PiApiKind PiApiOffset> struct PiFuncInfo {};
       return MPlugin.PiFunctionTable.api;                                      \
     }                                                                          \
   };
-#include <pi.def>
+#include <pi/pi.def>
 
 // Helper utilities for PI Tracing
 // The run-time tracing of PI calls.

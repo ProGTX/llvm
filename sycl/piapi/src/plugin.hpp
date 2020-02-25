@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <pi.hpp>
+#include <pi/pi.hpp>
 
 namespace detail {
 

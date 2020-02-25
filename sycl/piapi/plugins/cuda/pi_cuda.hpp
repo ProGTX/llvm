@@ -18,7 +18,7 @@
 #ifndef PI_CUDA_HPP
 #define PI_CUDA_HPP
 
-#include <pi.h>
+#include <pi/pi.h>
 #include <array>
 #include <atomic>
 #include <cassert>

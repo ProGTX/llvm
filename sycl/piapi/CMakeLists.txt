@@ -8,8 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(pi_include_dir "${CMAKE_SOURCE_DIR}/include")
 
 add_library(piapi STATIC
-  "${pi_include_dir}/pi.h"
-  "${pi_include_dir}/pi.hpp"
+  "${pi_include_dir}/pi/pi.h"
+  "${pi_include_dir}/pi/pi.hpp"
   "${CMAKE_SOURCE_DIR}/src/pi.cpp"
 )
 target_include_directories(piapi PUBLIC "${pi_include_dir}")
