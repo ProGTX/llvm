@@ -11,7 +11,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 #cmake_policy(SET CMP0057 NEW)
 #include(AddLLVM)
 
+find_package(OpenCL REQUIRED)
+
 set(pi_include_dir "../../include")
+set(opencl_ext_include_dir "../../../include")
 
 # Plugin for OpenCL
 # Create Shared library for libpi_opencl.so.
@@ -23,21 +26,16 @@ add_library(pi_opencl SHARED
   "pi_opencl.cpp"
   )
 
-add_dependencies(pi_opencl
-  ocl-icd
-  ocl-headers
-)
-
 set_target_properties(pi_opencl PROPERTIES LINKER_LANGUAGE CXX)
 
 #preprocessor definitions for compiling a target's sources. We do not need it for pi_opencl
-target_include_directories(pi_opencl PRIVATE "${pi_include_dir}")
+target_include_directories(pi_opencl PRIVATE "${pi_include_dir}" "${opencl_ext_include_dir}")
 
 #link pi_opencl with OpenCL headers and ICD Loader.
 target_link_libraries( pi_opencl
-    PRIVATE OpenCL::Headers
-    PRIVATE ${OpenCL_LIBRARIES}
+    PRIVATE OpenCL::OpenCL
 )
+target_compile_definitions(pi_opencl PRIVATE CL_TARGET_OPENCL_VERSION=210)
 
 install(TARGETS pi_opencl
     LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT pi_opencl
