@@ -22,6 +22,7 @@ add_library(pi_cuda SHARED
 )
 
 target_link_libraries(pi_cuda PUBLIC piapi cudadrv)
+target_link_libraries(pi_cuda PRIVATE pi_export_library)
 
 target_include_directories(pi_cuda PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 

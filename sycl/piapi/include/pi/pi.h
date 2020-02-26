@@ -22,6 +22,12 @@
 #ifndef _PI_H_
 #define _PI_H_
 
+#ifdef PI_REQUIRES_EXPORT
+#include <piapi_export.h>
+#else
+#define PIAPI_EXPORT
+#endif // PI_REQUIRES_EXPORT
+
 // Every single change in PI API should be accompanied with the minor
 // version increase (+1). In the cases where backward compatibility is not
 // maintained there should be a (+1) change to the major version in
@@ -696,7 +702,7 @@ using pi_plugin = _pi_plugin;
 // populate the PI Version it supports, update targets field and populate
 // PiFunctionTable with Supported APIs. The pointers are in a predetermined
 // order in pi.def file.
-pi_result piPluginInit(pi_plugin *plugin_info);
+PIAPI_EXPORT pi_result piPluginInit(pi_plugin *plugin_info);
 
 //
 // Platform

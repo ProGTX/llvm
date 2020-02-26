@@ -15,7 +15,23 @@ add_library(piapi STATIC
   "$<$<PLATFORM_ID:Windows>:${pi_source_dir}/windows_pi.cpp>"
   "$<$<OR:$<PLATFORM_ID:Linux>,$<PLATFORM_ID:Darwin>>:${pi_source_dir}/posix_pi.cpp>"
 )
-target_include_directories(piapi PUBLIC "${pi_include_dir}")
+
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+
+# Define export header for the plugins
+# We don't have the plugins yet, so we rely on a shim shared library
+set(pi_export_header "${CMAKE_CURRENT_BINARY_DIR}/piapi_export.h")
+add_library(pi_export_library_shim EXCLUDE_FROM_ALL SHARED "${pi_source_dir}/shim.cpp")
+include(GenerateExportHeader)
+generate_export_header(pi_export_library_shim
+  BASE_NAME PIAPI
+  EXPORT_MACRO_NAME PIAPI_EXPORT
+  EXPORT_FILE_NAME "${pi_export_header}"
+  STATIC_DEFINE PIAPI_STATIC
+)
+
+target_include_directories(piapi PUBLIC "${pi_include_dir}" "${CMAKE_CURRENT_BINARY_DIR}")
 
 target_link_libraries(piapi PUBLIC ${CMAKE_DL_LIBS})
 
@@ -50,6 +66,14 @@ install(DIRECTORY "${pi_include_dir}"
 install(TARGETS piapi
   ARCHIVE DESTINATION "lib" COMPONENT piapi
   RUNTIME DESTINATION "bin" COMPONENT piapi
+)
+
+# Interface library that simplifies exporting symbols for the plugins
+add_library(pi_export_library INTERFACE)
+target_include_directories(pi_export_library INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+target_compile_definitions(pi_export_library INTERFACE
+  pi_export_library_shim_EXPORTS
+  PI_REQUIRES_EXPORT
 )
 
 enable_testing()

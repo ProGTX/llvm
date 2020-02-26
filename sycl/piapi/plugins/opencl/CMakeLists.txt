@@ -19,8 +19,9 @@ add_library(pi_opencl SHARED
 
 target_include_directories(pi_opencl PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-#link pi_opencl with OpenCL headers and ICD Loader.
 target_link_libraries(pi_opencl PUBLIC piapi OpenCL::OpenCL)
+target_link_libraries(pi_opencl PRIVATE pi_export_library)
+
 target_compile_definitions(pi_opencl PRIVATE CL_TARGET_OPENCL_VERSION=210)
 
 install(TARGETS pi_opencl
