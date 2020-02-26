@@ -30,13 +30,3 @@ target_compile_definitions(pi_opencl PRIVATE CL_TARGET_OPENCL_VERSION=210)
 install(TARGETS pi_opencl
     LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT pi_opencl
     RUNTIME DESTINATION "bin" COMPONENT pi_opencl)
-
-add_executable(pi_opencl_test EXCLUDE_FROM_ALL
-  "test.cpp"
-)
-add_dependencies(pi_opencl_test pi_opencl)
-target_link_libraries(pi_opencl_test PRIVATE
-  piapi
-)
-
-add_test(NAME pi_opencl_test COMMAND pi_opencl_test)
