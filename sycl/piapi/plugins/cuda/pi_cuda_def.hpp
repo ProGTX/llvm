@@ -6,13 +6,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <CL/sycl/detail/defines.hpp>
-
-__SYCL_INLINE_NAMESPACE(cl) {
-namespace sycl {
-namespace backend {
-namespace cuda {
-
 // CUDA backend specific options
 // TODO: Use values that won't overlap with others
 
@@ -27,8 +20,3 @@ namespace cuda {
 #define PI_CUDA_USE_DEFAULT_STREAM (0xFF03)
 // PI Command queue will sync with default stream
 #define PI_CUDA_SYNC_WITH_DEFAULT (0xFF04)
-
-} // namespace cuda
-} // namespace backend
-} // namespace sycl
-} // namespace cl

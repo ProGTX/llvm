@@ -66,7 +66,7 @@ void handleUnknownParamName(const char *functionName, T parameter) {
 // GetInfo functions. It will print the name of the function that invoked it
 // and the value of the unknown enumerator.
 #define PI_HANDLE_UNKNOWN_PARAM_NAME(parameter)                                \
-  { cl::sycl::detail::pi::handleUnknownParamName(__func__, parameter); }
+  { pi::handleUnknownParamName(__func__, parameter); }
 
 using PiPlugin = ::pi_plugin;
 using PiResult = ::pi_result;

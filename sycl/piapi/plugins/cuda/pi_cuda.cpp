@@ -11,9 +11,9 @@
 ///
 /// \ingroup sycl_pi_cuda
 
-#include <CL/sycl/backend/cuda.hpp>
+#include <pi_cuda.hpp>
+#include <pi_cuda_def.hpp>
 #include <pi/pi.hpp>
-#include <pi/pi_cuda.hpp>
 #include <algorithm>
 #include <cassert>
 #include <cuda.h>
@@ -241,7 +241,7 @@ pi_event_status _pi_event::get_execution_status() const noexcept {
     if (status == CUDA_ERROR_NOT_READY) {
       return PI_EVENT_RUNNING;
     } else if (status != CUDA_SUCCESS) {
-      cl::sycl::detail::pi::die("Invalid CUDA event status");
+      pi::die("Invalid CUDA event status");
     }
     return PI_EVENT_COMPLETE;
   } else {
@@ -365,9 +365,6 @@ pi_result _pi_program::build_program(const char *build_options) {
   return success ? PI_SUCCESS : PI_BUILD_PROGRAM_FAILURE;
 }
 
-namespace cl {
-namespace sycl {
-namespace detail {
 namespace pi {
 
 // Report error and no return (keeps compiler from printing warnings).
@@ -385,9 +382,6 @@ void assertion(bool Condition, const char *Message) {
 }
 
 }  // namespace pi
-}  // namespace detail
-}  // namespace sycl
-}  // namespace cl
 
 // RAII type to guarantee recovering original CUDA context
 class ScopedContext {
@@ -561,7 +555,7 @@ public:
         // CUDA error for which it is unclear if the function that reported it
         // succeeded or not. Either way, the state of the program is compromised
         // and likely unrecoverable.
-        cl::sycl::detail::pi::die("Unrecoverable program state reached in cuda_piMemRelease");
+        pi::die("Unrecoverable program state reached in cuda_piMemRelease");
       }
     }
   }
@@ -675,7 +669,7 @@ pi_result cuda_piPlatformGetInfo(pi_platform platform,
   default:
     PI_HANDLE_UNKNOWN_PARAM_NAME(param_name);
   }
-  cl::sycl::detail::pi::die("Platform info request not implemented");
+  pi::die("Platform info request not implemented");
   return {};
 }
 
@@ -752,13 +746,13 @@ pi_result cuda_piextDeviceSelectBinary(pi_device device,
                                        pi_uint32 num_binaries,
                                        pi_device_binary *selected_binary) {
   if (!binaries) {
-    cl::sycl::detail::pi::die("No list of device images provided");
+    pi::die("No list of device images provided");
   }
   if (num_binaries < 1) {
-    cl::sycl::detail::pi::die("No binary images in the list");
+    pi::die("No binary images in the list");
   }
   if (!selected_binary) {
-    cl::sycl::detail::pi::die("No storage for device binary provided");
+    pi::die("No storage for device binary provided");
   }
 
   // Look for an image for the NVPTX64 target, and return the first one that is
@@ -779,7 +773,7 @@ pi_result cuda_piextGetDeviceFunctionPointer(pi_device device,
                                        pi_device_binary *binaries,
                                        pi_uint32 num_binaries,
                                        pi_device_binary *selected_binary) {
-  cl::sycl::detail::pi::die("cuda_piextGetDeviceFunctionPointer not implemented");
+  pi::die("cuda_piextGetDeviceFunctionPointer not implemented");
   return {};
 }
 
@@ -807,10 +801,10 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
   }
   case PI_DEVICE_INFO_MAX_COMPUTE_UNITS: {
     int compute_units = 0;
-    cl::sycl::detail::pi::assertion(cuDeviceGetAttribute(&compute_units,
+    pi::assertion(cuDeviceGetAttribute(&compute_units,
                                        CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT,
                                        device->get()) == CUDA_SUCCESS);
-    cl::sycl::detail::pi::assertion(compute_units >= 0);
+    pi::assertion(compute_units >= 0);
     return getInfo(param_value_size, param_value, param_value_size_ret,
                    pi_uint32(compute_units));
   }
@@ -822,20 +816,20 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
     size_t return_sizes[max_work_item_dimensions];
 
     int max_x = 0, max_y = 0, max_z = 0;
-    cl::sycl::detail::pi::assertion(cuDeviceGetAttribute(&max_x,
+    pi::assertion(cuDeviceGetAttribute(&max_x,
                                        CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X,
                                        device->get()) == CUDA_SUCCESS);
-    cl::sycl::detail::pi::assertion(max_x >= 0);
+    pi::assertion(max_x >= 0);
 
-    cl::sycl::detail::pi::assertion(cuDeviceGetAttribute(&max_y,
+    pi::assertion(cuDeviceGetAttribute(&max_y,
                                        CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y,
                                        device->get()) == CUDA_SUCCESS);
-    cl::sycl::detail::pi::assertion(max_y >= 0);
+    pi::assertion(max_y >= 0);
 
-    cl::sycl::detail::pi::assertion(cuDeviceGetAttribute(&max_z,
+    pi::assertion(cuDeviceGetAttribute(&max_z,
                                        CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z,
                                        device->get()) == CUDA_SUCCESS);
-    cl::sycl::detail::pi::assertion(max_z >= 0);
+    pi::assertion(max_z >= 0);
 
     return_sizes[0] = size_t(max_x);
     return_sizes[1] = size_t(max_y);
@@ -845,12 +839,12 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
   }
   case PI_DEVICE_INFO_MAX_WORK_GROUP_SIZE: {
     int max_work_group_size = 0;
-    cl::sycl::detail::pi::assertion(
+    pi::assertion(
         cuDeviceGetAttribute(&max_work_group_size,
                              CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
                              device->get()) == CUDA_SUCCESS);
 
-    cl::sycl::detail::pi::assertion(max_work_group_size >= 0);
+    pi::assertion(max_work_group_size >= 0);
 
     return getInfo(param_value_size, param_value, param_value_size_ret,
                    size_t(max_work_group_size));
@@ -899,10 +893,10 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
   }
   case PI_DEVICE_INFO_MAX_CLOCK_FREQUENCY: {
     int clock_freq = 0;
-    cl::sycl::detail::pi::assertion(cuDeviceGetAttribute(&clock_freq,
+    pi::assertion(cuDeviceGetAttribute(&clock_freq,
                                        CU_DEVICE_ATTRIBUTE_CLOCK_RATE,
                                        device->get()) == CUDA_SUCCESS);
-    cl::sycl::detail::pi::assertion(clock_freq >= 0);
+    pi::assertion(clock_freq >= 0);
     return getInfo(param_value_size, param_value, param_value_size_ret,
                    pi_uint32(clock_freq) / 1000u);
   }
@@ -918,7 +912,7 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
     // CL_DEVICE_TYPE_CUSTOM.
 
     size_t global = 0;
-    cl::sycl::detail::pi::assertion(cuDeviceTotalMem(&global, device->get()) == CUDA_SUCCESS);
+    pi::assertion(cuDeviceTotalMem(&global, device->get()) == CUDA_SUCCESS);
 
     auto quarter_global = static_cast<pi_uint32>(global / 4u);
 
@@ -1013,10 +1007,10 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
   }
   case PI_DEVICE_INFO_GLOBAL_MEM_CACHE_SIZE: {
     int cache_size = 0;
-    cl::sycl::detail::pi::assertion(cuDeviceGetAttribute(&cache_size,
+    pi::assertion(cuDeviceGetAttribute(&cache_size,
                                        CU_DEVICE_ATTRIBUTE_L2_CACHE_SIZE,
                                        device->get()) == CUDA_SUCCESS);
-    cl::sycl::detail::pi::assertion(cache_size >= 0);
+    pi::assertion(cache_size >= 0);
     // The L2 cache is global to the GPU.
     return getInfo(param_value_size, param_value, param_value_size_ret,
                    pi_uint64(cache_size));
@@ -1024,17 +1018,17 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
   case PI_DEVICE_INFO_GLOBAL_MEM_SIZE: {
     size_t bytes = 0;
     // Runtime API has easy access to this value, driver API info is scarse.
-    cl::sycl::detail::pi::assertion(cuDeviceTotalMem(&bytes, device->get()) == CUDA_SUCCESS);
+    pi::assertion(cuDeviceTotalMem(&bytes, device->get()) == CUDA_SUCCESS);
     return getInfo(param_value_size, param_value, param_value_size_ret,
                    pi_uint64{bytes});
   }
   case PI_DEVICE_INFO_MAX_CONSTANT_BUFFER_SIZE: {
     int constant_memory = 0;
-    cl::sycl::detail::pi::assertion(
+    pi::assertion(
         cuDeviceGetAttribute(&constant_memory,
                              CU_DEVICE_ATTRIBUTE_TOTAL_CONSTANT_MEMORY,
                              device->get()) == CUDA_SUCCESS);
-    cl::sycl::detail::pi::assertion(constant_memory >= 0);
+    pi::assertion(constant_memory >= 0);
 
     return getInfo(param_value_size, param_value, param_value_size_ret,
                    pi_uint64(constant_memory));
@@ -1054,31 +1048,31 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
     // CUDA has its own definition of "local memory", which maps to OpenCL's
     // "private memory".
     int local_mem_size = 0;
-    cl::sycl::detail::pi::assertion(
+    pi::assertion(
         cuDeviceGetAttribute(&local_mem_size,
                              CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK,
                              device->get()) == CUDA_SUCCESS);
-    cl::sycl::detail::pi::assertion(local_mem_size >= 0);
+    pi::assertion(local_mem_size >= 0);
     return getInfo(param_value_size, param_value, param_value_size_ret,
                    pi_uint64(local_mem_size));
   }
   case PI_DEVICE_INFO_ERROR_CORRECTION_SUPPORT: {
     int ecc_enabled = 0;
-    cl::sycl::detail::pi::assertion(cuDeviceGetAttribute(&ecc_enabled,
+    pi::assertion(cuDeviceGetAttribute(&ecc_enabled,
                                        CU_DEVICE_ATTRIBUTE_ECC_ENABLED,
                                        device->get()) == CUDA_SUCCESS);
 
-    cl::sycl::detail::pi::assertion((ecc_enabled == 0) | (ecc_enabled == 1));
+    pi::assertion((ecc_enabled == 0) | (ecc_enabled == 1));
     auto result = static_cast<bool>(ecc_enabled);
     return getInfo(param_value_size, param_value, param_value_size_ret, result);
   }
   case PI_DEVICE_INFO_HOST_UNIFIED_MEMORY: {
     int is_integrated = 0;
-    cl::sycl::detail::pi::assertion(cuDeviceGetAttribute(&is_integrated,
+    pi::assertion(cuDeviceGetAttribute(&is_integrated,
                                        CU_DEVICE_ATTRIBUTE_INTEGRATED,
                                        device->get()) == CUDA_SUCCESS);
 
-    cl::sycl::detail::pi::assertion((is_integrated == 0) | (is_integrated == 1));
+    pi::assertion((is_integrated == 0) | (is_integrated == 1));
     auto result = static_cast<bool>(is_integrated);
     return getInfo(param_value_size, param_value, param_value_size_ret, result);
   }
@@ -1129,7 +1123,7 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
   case PI_DEVICE_INFO_NAME: {
     static constexpr size_t MAX_DEVICE_NAME_LENGTH = 256u;
     char name[MAX_DEVICE_NAME_LENGTH];
-    cl::sycl::detail::pi::assertion(cuDeviceGetName(name, MAX_DEVICE_NAME_LENGTH,
+    pi::assertion(cuDeviceGetName(name, MAX_DEVICE_NAME_LENGTH,
                                   device->get()) == CUDA_SUCCESS);
     return getInfoArray(strlen(name) + 1, param_value_size, param_value,
                         param_value_size_ret, name);
@@ -1310,7 +1304,7 @@ pi_result cuda_piDeviceGetInfo(pi_device device, pi_device_info param_name,
   default:
     PI_HANDLE_UNKNOWN_PARAM_NAME(param_name);
   }
-  cl::sycl::detail::pi::die("Device info request not implemented");
+  pi::die("Device info request not implemented");
   return {};
 }
 
@@ -1539,7 +1533,7 @@ pi_result cuda_piMemRelease(pi_mem memObj) {
     // error for which it is unclear if the function that reported it succeeded
     // or not. Either way, the state of the program is compromised and likely
     // unrecoverable.
-    cl::sycl::detail::pi::die("Unrecoverable program state reached in cuda_piMemRelease");
+    pi::die("Unrecoverable program state reached in cuda_piMemRelease");
   }
 
   return PI_SUCCESS;
@@ -1639,7 +1633,7 @@ pi_result cuda_piMemGetInfo(pi_mem memObj, cl_mem_info queriedInfo,
                             size_t expectedQuerySize, void *queryOutput,
                             size_t *writtenQuerySize) {
 
-  cl::sycl::detail::pi::die("cuda_piMemGetInfo not implemented");
+  pi::die("cuda_piMemGetInfo not implemented");
 }
 
 pi_result cuda_piQueueCreate(pi_context context, pi_device device,
@@ -1711,7 +1705,7 @@ pi_result cuda_piQueueGetInfo(pi_queue command_queue, pi_queue_info param_name,
   default:
     PI_HANDLE_UNKNOWN_PARAM_NAME(param_name);
   }
-  cl::sycl::detail::pi::die("Queue info request not implemented");
+  pi::die("Queue info request not implemented");
   return {};
 }
 
@@ -2109,21 +2103,21 @@ cuda_piEnqueueNativeKernel(pi_queue queue, void (*user_func)(void *), void *args
                       const pi_mem *mem_list, const void **args_mem_loc,
                       pi_uint32 num_events_in_wait_list,
                       const pi_event *event_wait_list, pi_event *event) {
-  cl::sycl::detail::pi::die("Not implemented in CUDA backend");
+  pi::die("Not implemented in CUDA backend");
   return {};
 }
 
 pi_result cuda_piMemImageCreate( // TODO: change interface to return error code
     pi_context context, pi_mem_flags flags, const pi_image_format *image_format,
     const pi_image_desc *image_desc, void *host_ptr, pi_mem *ret_mem) {
-  cl::sycl::detail::pi::die("cuda_piMemImageCreate not implemented");
+  pi::die("cuda_piMemImageCreate not implemented");
   return {};
 }
 
 pi_result cuda_piMemImageGetInfo(pi_mem image, pi_image_info param_name,
                                  size_t param_value_size, void *param_value,
                                  size_t *param_value_size_ret) {
-  cl::sycl::detail::pi::die("cuda_piMemImageGetInfo not implemented");
+  pi::die("cuda_piMemImageGetInfo not implemented");
   return {};
 }
 
@@ -2139,7 +2133,7 @@ pi_result cuda_piMemRetain(pi_mem mem) {
 //
 pi_result cuda_piProgramCreate(pi_context context, const void *il,
                                size_t length, pi_program *res_program) {
-  cl::sycl::detail::pi::die("cuda_piProgramCreate not implemented");
+  pi::die("cuda_piProgramCreate not implemented");
   return {};
 }
 
@@ -2147,7 +2141,7 @@ pi_result cuda_piclProgramCreateWithBinary( // TODO: change to return pi_result
     pi_context context, pi_uint32 num_devices, const pi_device *device_list,
     const size_t *lengths, const unsigned char **binaries,
     pi_int32 *binary_status, pi_program *errcode_ret) {
-  cl::sycl::detail::pi::die("cuda_piclProgramCreateWithBinary not implemented");
+  pi::die("cuda_piclProgramCreateWithBinary not implemented");
   return {};
 }
 
@@ -2184,7 +2178,7 @@ pi_result cuda_piProgramGetInfo(pi_program program, pi_program_info param_name,
   default:
     PI_HANDLE_UNKNOWN_PARAM_NAME(param_name);
   }
-  cl::sycl::detail::pi::die("Program info request not implemented");
+  pi::die("Program info request not implemented");
   return {};
 }
 
@@ -2294,7 +2288,7 @@ pi_result cuda_piProgramGetBuildInfo(pi_program program, pi_device device,
   default:
     PI_HANDLE_UNKNOWN_PARAM_NAME(param_name);
   }
-  cl::sycl::detail::pi::die("Program Build info request not implemented");
+  pi::die("Program Build info request not implemented");
   return {};
 }
 
@@ -2383,7 +2377,7 @@ pi_result cuda_piKernelGetGroupInfo(pi_kernel kernel, pi_device device,
     switch (param_name) {
     case PI_KERNEL_GROUP_INFO_WORK_GROUP_SIZE: {
       int max_threads = 0;
-      cl::sycl::detail::pi::assertion(cuFuncGetAttribute(&max_threads,
+      pi::assertion(cuFuncGetAttribute(&max_threads,
                                        CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK,
                                        kernel->get()) == CUDA_SUCCESS);
       return getInfo(param_value_size, param_value, param_value_size_ret,
@@ -2403,7 +2397,7 @@ pi_result cuda_piKernelGetGroupInfo(pi_kernel kernel, pi_device device,
     case PI_KERNEL_GROUP_INFO_LOCAL_MEM_SIZE: {
       // OpenCL LOCAL == CUDA SHARED
       int bytes = 0;
-      cl::sycl::detail::pi::assertion(cuFuncGetAttribute(&bytes,
+      pi::assertion(cuFuncGetAttribute(&bytes,
                                        CU_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES,
                                        kernel->get()) == CUDA_SUCCESS);
       return getInfo(param_value_size, param_value, param_value_size_ret,
@@ -2440,7 +2434,7 @@ pi_result cuda_piKernelGetSubGroupInfo(
     cl_kernel_sub_group_info param_name, // TODO: untie from OpenCL
     size_t input_value_size, const void *input_value, size_t param_value_size,
     void *param_value, size_t *param_value_size_ret) {
-  cl::sycl::detail::pi::die("cuda_piKernelGetSubGroupInfo not implemented");
+  pi::die("cuda_piKernelGetSubGroupInfo not implemented");
   return {};
 }
 
@@ -2563,7 +2557,7 @@ pi_result cuda_piEventGetProfilingInfo(
   default:
     PI_HANDLE_UNKNOWN_PARAM_NAME(param_name);
   }
-  cl::sycl::detail::pi::die("Event Profiling info request not implemented");
+  pi::die("Event Profiling info request not implemented");
   return {};
 }
 
@@ -2572,7 +2566,7 @@ pi_result cuda_piEventSetCallback(
     void (*pfn_notify)(pi_event event, pi_int32 event_command_status,
                        void *user_data),
     void *user_data) {
-  cl::sycl::detail::pi::die("cuda_piEventSetCallback not implemented");
+  pi::die("cuda_piEventSetCallback not implemented");
   return {};
 }
 
@@ -2590,7 +2584,7 @@ pi_result cuda_piEventSetStatus(pi_event event, pi_int32 execution_status) {
   } else if (execution_status < 0) {
     // TODO: A negative integer value causes all enqueued commands that wait
     // on this user event to be terminated.
-    cl::sycl::detail::pi::die("cuda_piEventSetStatus support for negative execution_status not "
+    pi::die("cuda_piEventSetStatus support for negative execution_status not "
                               "implemented.");
   }
 
@@ -2602,7 +2596,7 @@ pi_result cuda_piEventRetain(pi_event event) {
 
   const auto refCount = event->increment_reference_count();
 
-  cl::sycl::detail::pi::assertion(
+  pi::assertion(
     refCount != 0, "Reference count overflow detected in cuda_piEventRetain.");
 
   return PI_SUCCESS;
@@ -2613,7 +2607,7 @@ pi_result cuda_piEventRelease(pi_event event) {
 
   // double delete or someone is messing with the ref count.
   // either way, cannot safely proceed.
-  cl::sycl::detail::pi::assertion(
+  pi::assertion(
     event->get_reference_count() != 0,
     "Reference count overflow detected in cuda_piEventRelease.");
 
@@ -2647,7 +2641,7 @@ pi_result cuda_piSamplerCreate(
     pi_context context,
     const cl_sampler_properties *sampler_properties, // TODO: untie from OpenCL
     pi_sampler *result_sampler) {
-  cl::sycl::detail::pi::die("cuda_piSamplerCreate not implemented");
+  pi::die("cuda_piSamplerCreate not implemented");
   return {};
 }
 
@@ -2656,17 +2650,17 @@ cuda_piSamplerGetInfo(pi_sampler sampler,
                       cl_sampler_info param_name, // TODO: untie from OpenCL
                       size_t param_value_size, void *param_value,
                       size_t *param_value_size_ret) {
-  cl::sycl::detail::pi::die("cuda_piSamplerGetInfo not implemented");
+  pi::die("cuda_piSamplerGetInfo not implemented");
   return {};
 }
 
 pi_result cuda_piSamplerRetain(pi_sampler sampler) {
-  cl::sycl::detail::pi::die("cuda_piSamplerRetain not implemented");
+  pi::die("cuda_piSamplerRetain not implemented");
   return {};
 }
 
 pi_result cuda_piSamplerRelease(pi_sampler sampler) {
-  cl::sycl::detail::pi::die("cuda_piSamplerRelease not implemented");
+  pi::die("cuda_piSamplerRelease not implemented");
   return {};
 }
 
@@ -3056,7 +3050,7 @@ pi_result cuda_piEnqueueMemImageRead(
     const size_t *origin, const size_t *region, size_t row_pitch,
     size_t slice_pitch, void *ptr, pi_uint32 num_events_in_wait_list,
     const pi_event *event_wait_list, pi_event *event) {
-  cl::sycl::detail::pi::die("cuda_piEnqueueMemImageRead not implemented");
+  pi::die("cuda_piEnqueueMemImageRead not implemented");
   return {};
 }
 
@@ -3067,7 +3061,7 @@ cuda_piEnqueueMemImageWrite(pi_queue command_queue, pi_mem image,
                             size_t input_slice_pitch, const void *ptr,
                             pi_uint32 num_events_in_wait_list,
                             const pi_event *event_wait_list, pi_event *event) {
-  cl::sycl::detail::pi::die("cuda_piEnqueueMemImageWrite not implemented");
+  pi::die("cuda_piEnqueueMemImageWrite not implemented");
   return {};
 }
 
@@ -3078,7 +3072,7 @@ pi_result cuda_piEnqueueMemImageCopy(pi_queue command_queue, pi_mem src_image,
                                      pi_uint32 num_events_in_wait_list,
                                      const pi_event *event_wait_list,
                                      pi_event *event) {
-  cl::sycl::detail::pi::die("cuda_piEnqueueMemImageCopy not implemented");
+  pi::die("cuda_piEnqueueMemImageCopy not implemented");
   return {};
 }
 
@@ -3088,7 +3082,7 @@ pi_result cuda_piEnqueueMemImageFill(pi_queue command_queue, pi_mem image,
                                      pi_uint32 num_events_in_wait_list,
                                      const pi_event *event_wait_list,
                                      pi_event *event) {
-  cl::sycl::detail::pi::die("cuda_piEnqueueMemImageFill not implemented");
+  pi::die("cuda_piEnqueueMemImageFill not implemented");
   return {};
 }
 

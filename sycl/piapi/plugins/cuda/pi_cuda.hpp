@@ -32,6 +32,13 @@
 #include <functional>
 #include <mutex>
 
+
+#if defined(__GNUC__) && !defined(__llvm__) && (__GNUC__ < 7)
+namespace std {
+using atomic_uint32_t = std::atomic<std::uint32_t>;
+}
+#endif // GCC pre 7
+
 extern "C" {
 
 pi_result cuda_piContextRetain(pi_context );
