@@ -30,8 +30,9 @@ install(TARGETS pi_opencl
 add_executable(pi_opencl_test EXCLUDE_FROM_ALL
   "test.cpp"
 )
+add_dependencies(pi_opencl_test pi_opencl)
 target_link_libraries(pi_opencl_test PRIVATE
   piapi
 )
 
-add_test(NAME pi_opencl_test COMMAND pi_opencl_test DEPENDS pi_opencl)
+add_test(NAME pi_opencl_test COMMAND pi_opencl_test)
