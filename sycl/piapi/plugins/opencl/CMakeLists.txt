@@ -15,7 +15,10 @@ set(opencl_ext_include_dir "${CMAKE_SOURCE_DIR}/../include")
 add_library(pi_opencl SHARED
   "${pi_include_dir}/pi/pi.h"
   "pi_opencl.cpp"
-  )
+)
+set_target_properties(pi_opencl PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${pi_output_dir}"
+)
 
 target_include_directories(pi_opencl PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 

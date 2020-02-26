@@ -20,6 +20,9 @@ add_library(pi_cuda SHARED
   "pi_cuda.hpp"
   "pi_cuda.cpp"
 )
+set_target_properties(pi_cuda PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${pi_output_dir}"
+)
 
 target_link_libraries(pi_cuda PUBLIC piapi cudadrv)
 target_link_libraries(pi_cuda PRIVATE pi_export_library)

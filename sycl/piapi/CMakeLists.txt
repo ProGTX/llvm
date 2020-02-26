@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(pi_include_dir "${CMAKE_SOURCE_DIR}/include")
 set(pi_source_dir "${CMAKE_SOURCE_DIR}/src")
+set(pi_output_dir "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 add_library(piapi STATIC
   "${pi_include_dir}/pi/pi.h"
@@ -14,6 +15,9 @@ add_library(piapi STATIC
   "${pi_source_dir}/pi.cpp"
   "$<$<PLATFORM_ID:Windows>:${pi_source_dir}/windows_pi.cpp>"
   "$<$<OR:$<PLATFORM_ID:Linux>,$<PLATFORM_ID:Darwin>>:${pi_source_dir}/posix_pi.cpp>"
+)
+set_target_properties(piapi PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY "${pi_output_dir}"
 )
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -70,7 +74,7 @@ install(TARGETS piapi
 
 # Interface library that simplifies exporting symbols for the plugins
 add_library(pi_export_library INTERFACE)
-target_include_directories(pi_export_library INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(pi_export_library INTERFACE "${pi_output_dir}")
 target_compile_definitions(pi_export_library INTERFACE
   pi_export_library_shim_EXPORTS
   PI_REQUIRES_EXPORT
