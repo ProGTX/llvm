@@ -39,13 +39,13 @@ namespace pi {
 // Forward declaration of the detail plugin type
 class plugin;
 
-#ifdef SYCL_RT_OS_WINDOWS
+#ifdef _WIN32
 #define OPENCL_PLUGIN_NAME "pi_opencl.dll"
 #define CUDA_PLUGIN_NAME "pi_cuda.dll"
 #else
 #define OPENCL_PLUGIN_NAME "libpi_opencl.so"
 #define CUDA_PLUGIN_NAME "libpi_cuda.so"
-#endif
+#endif // _WIN32
 
 // Report error and no return (keeps compiler happy about no return statements).
 [[noreturn]] void die(const char *Message);
