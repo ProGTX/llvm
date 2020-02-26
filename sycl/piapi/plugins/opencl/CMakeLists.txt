@@ -32,7 +32,6 @@ add_executable(pi_opencl_test EXCLUDE_FROM_ALL
 )
 target_link_libraries(pi_opencl_test PRIVATE
   piapi
-  pi_opencl
 )
 
-add_test(NAME pi_opencl_test COMMAND pi_opencl_test)
+add_test(NAME pi_opencl_test COMMAND pi_opencl_test DEPENDS pi_opencl)
