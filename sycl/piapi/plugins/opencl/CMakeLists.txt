@@ -17,15 +17,10 @@ add_library(pi_opencl SHARED
   "pi_opencl.cpp"
   )
 
-set_target_properties(pi_opencl PROPERTIES LINKER_LANGUAGE CXX)
-
-#preprocessor definitions for compiling a target's sources. We do not need it for pi_opencl
-target_include_directories(pi_opencl PRIVATE "${pi_include_dir}" "${opencl_ext_include_dir}")
+target_include_directories(pi_opencl PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
 #link pi_opencl with OpenCL headers and ICD Loader.
-target_link_libraries( pi_opencl
-    PRIVATE OpenCL::OpenCL
-)
+target_link_libraries(pi_opencl PUBLIC piapi OpenCL::OpenCL)
 target_compile_definitions(pi_opencl PRIVATE CL_TARGET_OPENCL_VERSION=210)
 
 install(TARGETS pi_opencl
