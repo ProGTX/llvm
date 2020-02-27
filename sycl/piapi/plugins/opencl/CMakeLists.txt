@@ -17,7 +17,9 @@ add_library(pi_opencl SHARED
   "pi_opencl.cpp"
 )
 set_target_properties(pi_opencl PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY "${pi_output_dir}"
+  ARCHIVE_OUTPUT_DIRECTORY "${pi_library_output_dir}"
+  LIBRARY_OUTPUT_DIRECTORY "${pi_library_output_dir}"
+  RUNTIME_OUTPUT_DIRECTORY "${pi_binary_output_dir}"
 )
 
 target_include_directories(pi_opencl PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")

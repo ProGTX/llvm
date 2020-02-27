@@ -21,7 +21,9 @@ add_library(pi_cuda SHARED
   "pi_cuda.cpp"
 )
 set_target_properties(pi_cuda PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY "${pi_output_dir}"
+  ARCHIVE_OUTPUT_DIRECTORY "${pi_library_output_dir}"
+  LIBRARY_OUTPUT_DIRECTORY "${pi_library_output_dir}"
+  RUNTIME_OUTPUT_DIRECTORY "${pi_binary_output_dir}"
 )
 
 target_link_libraries(pi_cuda PUBLIC piapi cudadrv)
