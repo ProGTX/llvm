@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+################################################################################
+# Main library
+
 set(pi_include_dir "${CMAKE_SOURCE_DIR}/include")
 set(pi_source_dir "${CMAKE_SOURCE_DIR}/src")
 set(pi_library_output_dir "${CMAKE_CURRENT_BINARY_DIR}/lib")
@@ -20,6 +23,11 @@ add_library(piapi STATIC
 set_target_properties(piapi PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY "${pi_library_output_dir}"
 )
+target_include_directories(piapi PUBLIC "${pi_include_dir}" "${CMAKE_CURRENT_BINARY_DIR}")
+target_link_libraries(piapi PUBLIC ${CMAKE_DL_LIBS})
+
+################################################################################
+# Export header
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
@@ -36,9 +44,8 @@ generate_export_header(pi_export_library_shim
   STATIC_DEFINE PIAPI_STATIC
 )
 
-target_include_directories(piapi PUBLIC "${pi_include_dir}" "${CMAKE_CURRENT_BINARY_DIR}")
-
-target_link_libraries(piapi PUBLIC ${CMAKE_DL_LIBS})
+################################################################################
+# OpenCL
 
 option(PI_OPENCL_HEADERS "Should OpenCL headers be included" ON)
 if(PI_OPENCL_HEADERS)
@@ -61,6 +68,9 @@ if(PI_OPENCL_HEADERS)
   )
 endif()
 
+################################################################################
+# Install
+
 install(DIRECTORY "${pi_include_dir}"
   DESTINATION . COMPONENT headers
   FILES_MATCHING
@@ -73,7 +83,9 @@ install(TARGETS piapi
   RUNTIME DESTINATION "bin" COMPONENT piapi
 )
 
+################################################################################
 # Interface library that simplifies exporting symbols for the plugins
+
 add_library(pi_export_library INTERFACE)
 target_include_directories(pi_export_library INTERFACE "${pi_library_output_dir}")
 target_compile_definitions(pi_export_library INTERFACE
@@ -81,6 +93,12 @@ target_compile_definitions(pi_export_library INTERFACE
   PI_REQUIRES_EXPORT
 )
 
+################################################################################
+# Tests
+
 enable_testing()
+
+################################################################################
+# Plugins
 
 add_subdirectory(plugins)
