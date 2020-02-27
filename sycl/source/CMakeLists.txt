@@ -74,7 +74,6 @@ set(SYCL_SOURCES
     "detail/builtins_math.cpp"
     "detail/builtins_relational.cpp"
     "detail/cg.cpp"
-    "detail/pi.cpp"
     "detail/common.cpp"
     "detail/config.cpp"
     "detail/context_impl.cpp"
@@ -126,8 +125,6 @@ set(SYCL_SOURCES
     "sampler.cpp"
     "stream.cpp"
     "spirv_ops.cpp"
-    "$<$<PLATFORM_ID:Windows>:detail/windows_pi.cpp>"
-    "$<$<OR:$<PLATFORM_ID:Linux>,$<PLATFORM_ID:Darwin>>:detail/posix_pi.cpp>"
 )
 
 if (SYCL_ENABLE_XPTI_TRACING)

@@ -6,10 +6,10 @@
 //
 // ===--------------------------------------------------------------------=== //
 
-#include <CL/sycl/backend/cuda.hpp>
+#include <pi/pi_cuda.hpp>
 #include <CL/sycl/detail/clusm.hpp>
 #include <CL/sycl/detail/common.hpp>
-#include <CL/sycl/detail/pi.hpp>
+#include <pi/pi.hpp>
 #include <CL/sycl/device.hpp>
 #include <CL/sycl/exception.hpp>
 #include <CL/sycl/exception_list.hpp>

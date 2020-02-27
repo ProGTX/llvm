@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <CL/sycl/detail/pi.hpp>
-#include <detail/plugin.hpp>
+#include <pi/pi.hpp>
+#include <pi/plugin.hpp>
 #include <gtest/gtest.h>
 
 using namespace cl::sycl;

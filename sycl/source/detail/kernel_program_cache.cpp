@@ -8,7 +8,7 @@
 
 #include <detail/context_impl.hpp>
 #include <detail/kernel_program_cache.hpp>
-#include <detail/plugin.hpp>
+#include <pi/plugin.hpp>
 
 __SYCL_INLINE_NAMESPACE(cl) {
 namespace sycl {

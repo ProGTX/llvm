@@ -12,7 +12,7 @@
 #include <CL/__spirv/spirv_vars.hpp>
 #include <CL/sycl/access/access.hpp>
 #include <CL/sycl/detail/common.hpp>
-#include <CL/sycl/detail/pi.hpp>
+#include <pi/pi.hpp>
 #include <CL/sycl/detail/type_traits.hpp>
 
 #include <memory>

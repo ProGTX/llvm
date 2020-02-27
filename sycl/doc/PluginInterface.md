@@ -74,7 +74,7 @@ into
 - **Interoperability API** which allows interoperability with underlying APIs
 such as OpenCL.
 
-See [pi.h](../include/CL/sycl/detail/pi.h) header for the full list and
+See [pi.h](../include/pi/pi.h) header for the full list and
 descriptions of PI APIs. [TBD: link to pi.h doxygen here]
 
 ### The Core OpenCL-based PI APIs

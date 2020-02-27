@@ -9,7 +9,7 @@
 #include <CL/sycl/context.hpp>
 #include <CL/sycl/detail/aligned_allocator.hpp>
 #include <CL/sycl/detail/os_util.hpp>
-#include <CL/sycl/detail/pi.hpp>
+#include <pi/pi.hpp>
 #include <CL/sycl/device.hpp>
 #include <CL/sycl/usm.hpp>
 #include <detail/queue_impl.hpp>

@@ -9,10 +9,10 @@
 #pragma once
 #include <CL/sycl/detail/common_info.hpp>
 #include <CL/sycl/detail/defines.hpp>
-#include <CL/sycl/detail/pi.hpp>
+#include <pi/pi.hpp>
 #include <CL/sycl/info/info_desc.hpp>
 #include <CL/sycl/platform.hpp>
-#include <detail/plugin.hpp>
+#include <pi/plugin.hpp>
 
 __SYCL_INLINE_NAMESPACE(cl) {
 namespace sycl {

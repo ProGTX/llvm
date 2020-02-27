@@ -12,7 +12,6 @@
 /// \ingroup sycl_pi_cuda
 
 #include <pi_cuda.hpp>
-#include <pi_cuda_def.hpp>
 #include <pi/pi.hpp>
 #include <algorithm>
 #include <cassert>

@@ -12,8 +12,8 @@
 
 #include "error_handling.hpp"
 
-#include <CL/sycl/detail/pi.hpp>
-#include <detail/plugin.hpp>
+#include <pi/pi.hpp>
+#include <pi/plugin.hpp>
 
 __SYCL_INLINE_NAMESPACE(cl) {
 namespace sycl {

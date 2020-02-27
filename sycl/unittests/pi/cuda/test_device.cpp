@@ -11,9 +11,9 @@
 #include <cuda.h>
 
 #include <CL/sycl.hpp>
-#include <CL/sycl/detail/pi.hpp>
-#include <detail/plugin.hpp>
-#include <pi_cuda.hpp>
+#include <pi/pi.hpp>
+#include <pi/plugin.hpp>
+#include <pi/pi_cuda.hpp>
 
 using namespace cl::sycl;
 

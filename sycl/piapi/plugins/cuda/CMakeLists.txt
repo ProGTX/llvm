@@ -33,12 +33,8 @@ target_include_directories(pi_cuda PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_include_directories(pi_cuda PUBLIC ${CUDA_INCLUDE_DIRS})
 
-
 install(TARGETS pi_cuda
   LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT pi_cuda
   RUNTIME DESTINATION "bin" COMPONENT pi_cuda
 )
-
-# `sycl/source/CMakeLists.txt` adapted when SYCL_BUILD_PI_CUDA is defined:
-# target_link_libraries(sycl PUBLIC pi_cuda)
-# target_compile_definitions(sycl PUBLIC USE_PI_CUDA)
+install(FILES "pi_cuda.hpp" DESTINATION include/pi COMPONENT headers)
