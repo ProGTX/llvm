@@ -10,7 +10,7 @@ add_library(cudadrv SHARED IMPORTED)
 
 set_target_properties(
   cudadrv PROPERTIES 
-    IMPORTED_LOCATION             ${CUDA_cudadevrt_LIBRARY}
+    IMPORTED_LOCATION             ${CUDA_CUDA_LIBRARY}
     INTERFACE_INCLUDE_DIRECTORIES ${CUDA_INCLUDE_DIRS}
 )
 
