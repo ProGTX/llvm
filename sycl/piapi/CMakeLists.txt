@@ -13,6 +13,8 @@ set(pi_source_dir "${CMAKE_SOURCE_DIR}/src")
 set(pi_library_output_dir "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(pi_binary_output_dir "${CMAKE_CURRENT_BINARY_DIR}/bin")
 
+set(CONF_INCLUDE_DIRS "")
+
 add_library(piapi STATIC
   "${pi_include_dir}/pi/pi.h"
   "${pi_include_dir}/pi/pi.hpp"
@@ -23,7 +25,12 @@ add_library(piapi STATIC
 set_target_properties(piapi PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY "${pi_library_output_dir}"
 )
-target_include_directories(piapi PUBLIC "${pi_include_dir}" "${CMAKE_CURRENT_BINARY_DIR}")
+list(APPEND CONF_INCLUDE_DIRS "${pi_include_dir}")
+list(APPEND CONF_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(piapi PUBLIC
+  "$<BUILD_INTERFACE:${pi_include_dir}>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+)
 target_link_libraries(piapi PUBLIC ${CMAKE_DL_LIBS})
 
 ################################################################################
@@ -53,8 +60,9 @@ if(PI_OPENCL_HEADERS)
   set(opencl_ext_include_dir "${CMAKE_SOURCE_DIR}/../include")
 
   # Do not link against the OpenCL::OpenCL library, just need the headers
+  list(APPEND CONF_INCLUDE_DIRS "${opencl_ext_include_dir}")
   target_include_directories(piapi PUBLIC
-    "${opencl_ext_include_dir}"
+    "$<BUILD_INTERFACE:${opencl_ext_include_dir}>"
     "${OpenCL_INCLUDE_DIR}"
   )
   target_compile_definitions(piapi PUBLIC CL_TARGET_OPENCL_VERSION=210)
@@ -79,6 +87,7 @@ install(DIRECTORY "${pi_include_dir}"
     PATTERN "*.def" EXCLUDE
 )
 install(TARGETS piapi
+  EXPORT piapiTargets
   ARCHIVE DESTINATION "lib" COMPONENT piapi
   RUNTIME DESTINATION "bin" COMPONENT piapi
 )
@@ -102,3 +111,47 @@ enable_testing()
 # Plugins
 
 add_subdirectory(plugins)
+
+################################################################################
+# Package
+
+export(PACKAGE piapi)
+
+if(WIN32 AND NOT CYGWIN)
+  set(INSTALL_CMAKE_DIR CMake)
+else()
+  set(INSTALL_CMAKE_DIR lib/CMake/piapi)
+endif()
+# Add all targets to the build-tree export set
+export(TARGETS
+    piapi
+    pi_opencl
+    pi_cuda
+  FILE "${PROJECT_BINARY_DIR}/piapiTargets.cmake")
+
+# Export the package for use from the build-tree
+# (this registers the build-tree with a global CMake-registry)
+export(PACKAGE piapi)
+
+# Create the piapiConfig.cmake and piapiConfigVersion files
+# ... for the build tree
+set(configuration_include_dirs "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
+configure_file(piapiConfig.cmake.in
+  "${PROJECT_BINARY_DIR}/piapiConfig.cmake" @ONLY)
+# ... for the install tree
+set(configuration_include_dirs "\${FOOBAR_CMAKE_DIR}/include")
+configure_file(piapiConfig.cmake.in
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/piapiConfig.cmake" @ONLY)
+# ... for both
+configure_file(piapiConfigVersion.cmake.in
+  "${PROJECT_BINARY_DIR}/piapiConfigVersion.cmake" @ONLY)
+
+# Install the piapiConfig.cmake and piapiConfigVersion.cmake
+install(FILES
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/piapiConfig.cmake"
+  "${PROJECT_BINARY_DIR}/piapiConfigVersion.cmake"
+  DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+
+# Install the export set for use with the install-tree
+install(EXPORT piapiTargets DESTINATION
+  "${INSTALL_CMAKE_DIR}" COMPONENT dev)

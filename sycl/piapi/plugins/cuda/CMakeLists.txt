@@ -34,6 +34,7 @@ target_include_directories(pi_cuda PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(pi_cuda PUBLIC ${CUDA_INCLUDE_DIRS})
 
 install(TARGETS pi_cuda
+  EXPORT piapiTargets
   LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT pi_cuda
   RUNTIME DESTINATION "bin" COMPONENT pi_cuda
 )

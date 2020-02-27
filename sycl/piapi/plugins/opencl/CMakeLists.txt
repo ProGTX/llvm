@@ -30,5 +30,7 @@ target_link_libraries(pi_opencl PRIVATE pi_export_library)
 target_compile_definitions(pi_opencl PRIVATE CL_TARGET_OPENCL_VERSION=210)
 
 install(TARGETS pi_opencl
-    LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT pi_opencl
-    RUNTIME DESTINATION "bin" COMPONENT pi_opencl)
+  EXPORT piapiTargets
+  LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT pi_opencl
+  RUNTIME DESTINATION "bin" COMPONENT pi_opencl
+)
