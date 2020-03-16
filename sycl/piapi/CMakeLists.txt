@@ -133,7 +133,7 @@ export(TARGETS
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE piapi)
 
-# Create the piapiConfig.cmake and piapiConfigVersion files
+# Create piapiConfig.cmake
 # ... for the build tree
 set(configuration_include_dirs "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
 configure_file(piapiConfig.cmake.in
@@ -142,14 +142,10 @@ configure_file(piapiConfig.cmake.in
 set(configuration_include_dirs "\${FOOBAR_CMAKE_DIR}/include")
 configure_file(piapiConfig.cmake.in
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/piapiConfig.cmake" @ONLY)
-# ... for both
-configure_file(piapiConfigVersion.cmake.in
-  "${PROJECT_BINARY_DIR}/piapiConfigVersion.cmake" @ONLY)
 
-# Install the piapiConfig.cmake and piapiConfigVersion.cmake
+# Install piapiConfig.cmake
 install(FILES
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/piapiConfig.cmake"
-  "${PROJECT_BINARY_DIR}/piapiConfigVersion.cmake"
   DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
 
 # Install the export set for use with the install-tree
