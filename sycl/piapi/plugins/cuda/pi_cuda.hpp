@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 #include <mutex>
 
 // CUDA backend specific options
