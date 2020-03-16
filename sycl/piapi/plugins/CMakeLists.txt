@@ -8,11 +8,11 @@ target_link_libraries(test_pi_plugins PRIVATE
 add_test(NAME pi_plugins COMMAND test_pi_plugins)
 if(WIN32)
   set_tests_properties(pi_plugins PROPERTIES
-    ENVIRONMENT "PATH=${pi_binary_output_dir}/$<$<BOOL:${CMAKE_CONFIGURATION_TYPES}>:$<CONFIG>>;$ENV{PATH}"
+    ENVIRONMENT "PATH=$<TARGET_FILE_DIR:piapi>;$ENV{PATH}"
   )
 else()
   set_tests_properties(pi_plugins PROPERTIES
-    ENVIRONMENT "LD_LIBRARY_PATH=${pi_library_output_dir}/$<$<BOOL:${CMAKE_CONFIGURATION_TYPES}>:$<CONFIG>>:$ENV{LD_LIBRARY_PATH}"
+    ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:piapi>:$ENV{LD_LIBRARY_PATH}"
   )
 endif()
 

@@ -1,18 +1,6 @@
-# - Config file for the piapi package
-# It defines the following variables
-#  PIAPI_INCLUDE_DIRS - include directories for piapi
-#  PIAPI_LIBRARIES    - libraries to link against
-#  PIAPI_EXECUTABLE   - the pi_cuda executable
+include(CMakeFindDependencyMacro)
 
-# Compute paths
-get_filename_component(PIAPI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set(PIAPI_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+find_dependency(CUDA 10.0)
+find_dependency(OpenCL)
 
-# Our library dependencies (contains definitions for IMPORTED targets)
-if(NOT TARGET pi_opencl AND NOT piapi_BINARY_DIR)
-  include("${PIAPI_CMAKE_DIR}/piapiTargets.cmake")
-endif()
-
-# These are IMPORTED targets created by piapiTargets.cmake
-set(PIAPI_LIBRARIES pi_opencl)
-set(PIAPI_EXECUTABLE pi_cuda)
+include(${CMAKE_CURRENT_LIST_DIR}/piapiTargets.cmake)

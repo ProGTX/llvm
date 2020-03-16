@@ -8,8 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 ################################################################################
 # Main library
 
-set(pi_include_dir "${CMAKE_SOURCE_DIR}/include")
-set(pi_source_dir "${CMAKE_SOURCE_DIR}/src")
+set(pi_include_dir "${PROJECT_SOURCE_DIR}/include")
+set(pi_source_dir "${PROJECT_SOURCE_DIR}/src")
 set(pi_library_output_dir "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(pi_binary_output_dir "${CMAKE_CURRENT_BINARY_DIR}/bin")
 
@@ -57,7 +57,7 @@ generate_export_header(pi_export_library_shim
 option(PI_OPENCL_HEADERS "Should OpenCL headers be included" ON)
 if(PI_OPENCL_HEADERS)
   find_package(OpenCL REQUIRED)
-  set(opencl_ext_include_dir "${CMAKE_SOURCE_DIR}/../include")
+  set(opencl_ext_include_dir "${PROJECT_SOURCE_DIR}/../include")
 
   # Do not link against the OpenCL::OpenCL library, just need the headers
   list(APPEND CONF_INCLUDE_DIRS "${opencl_ext_include_dir}")
@@ -65,10 +65,9 @@ if(PI_OPENCL_HEADERS)
     "$<BUILD_INTERFACE:${opencl_ext_include_dir}>"
     "${OpenCL_INCLUDE_DIR}"
   )
-  target_compile_definitions(piapi PUBLIC CL_TARGET_OPENCL_VERSION=210)
 
   install(DIRECTORY "${opencl_ext_include_dir}"
-    DESTINATION . COMPONENT headers
+    DESTINATION . COMPONENT pi_opencl_ext_headers
     FILES_MATCHING
       PATTERN "cl_usm_ext.h"
       PATTERN "__spirv" EXCLUDE
@@ -79,17 +78,19 @@ endif()
 ################################################################################
 # Install
 
+# Export the package for use from the build-tree
+export(PACKAGE piapi)
+
 install(DIRECTORY "${pi_include_dir}"
-  DESTINATION . COMPONENT headers
-  FILES_MATCHING
-    PATTERN "*.h"
-    PATTERN "*.hpp"
-    PATTERN "*.def" EXCLUDE
+  DESTINATION . COMPONENT piapi
 )
 install(TARGETS piapi
   EXPORT piapiTargets
   ARCHIVE DESTINATION "lib" COMPONENT piapi
   RUNTIME DESTINATION "bin" COMPONENT piapi
+)
+export(TARGETS piapi APPEND
+  FILE "${PROJECT_BINARY_DIR}/piapiTargets.cmake"
 )
 
 ################################################################################
@@ -115,39 +116,33 @@ add_subdirectory(plugins)
 ################################################################################
 # Package
 
-export(PACKAGE piapi)
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/piapiConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY ExactVersion
+)
 
-if(WIN32 AND NOT CYGWIN)
-  set(INSTALL_CMAKE_DIR CMake)
-else()
-  set(INSTALL_CMAKE_DIR lib/CMake/piapi)
-endif()
-# Add all targets to the build-tree export set
-export(TARGETS
-    piapi
-    pi_opencl
-    pi_cuda
-  FILE "${PROJECT_BINARY_DIR}/piapiTargets.cmake")
-
-# Export the package for use from the build-tree
-# (this registers the build-tree with a global CMake-registry)
-export(PACKAGE piapi)
-
-# Create piapiConfig.cmake
-# ... for the build tree
-set(configuration_include_dirs "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
+export(EXPORT piapiTargets
+  FILE ${CMAKE_CURRENT_BINARY_DIR}/piapiTargets.cmake
+  NAMESPACE piapi::
+)
 configure_file(piapiConfig.cmake.in
-  "${PROJECT_BINARY_DIR}/piapiConfig.cmake" @ONLY)
-# ... for the install tree
-set(configuration_include_dirs "\${FOOBAR_CMAKE_DIR}/include")
-configure_file(piapiConfig.cmake.in
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/piapiConfig.cmake" @ONLY)
+  ${CMAKE_CURRENT_BINARY_DIR}/piapiConfig.cmake
+  COPYONLY
+)
 
-# Install piapiConfig.cmake
-install(FILES
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/piapiConfig.cmake"
-  DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+set(config_package_location lib/cmake/piapi)
+install(EXPORT piapiTargets
+  FILE piapiTargets.cmake
+  NAMESPACE piapi::
+  DESTINATION ${config_package_location}
+  COMPONENT piapi
+)
 
-# Install the export set for use with the install-tree
-install(EXPORT piapiTargets DESTINATION
-  "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/piapiConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/piapiConfigVersion.cmake
+  DESTINATION ${config_package_location}
+  COMPONENT piapi
+)

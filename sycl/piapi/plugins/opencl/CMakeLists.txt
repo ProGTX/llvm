@@ -34,3 +34,6 @@ install(TARGETS pi_opencl
   LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT pi_opencl
   RUNTIME DESTINATION "bin" COMPONENT pi_opencl
 )
+export(TARGETS pi_opencl APPEND
+  FILE "${PROJECT_BINARY_DIR}/piapiTargets.cmake"
+)

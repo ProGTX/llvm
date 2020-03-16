@@ -38,4 +38,7 @@ install(TARGETS pi_cuda
   LIBRARY DESTINATION "lib${LLVM_LIBDIR_SUFFIX}" COMPONENT pi_cuda
   RUNTIME DESTINATION "bin" COMPONENT pi_cuda
 )
+export(TARGETS pi_cuda APPEND
+  FILE "${PROJECT_BINARY_DIR}/piapiTargets.cmake"
+)
 install(FILES "pi_cuda.hpp" DESTINATION include/pi COMPONENT headers)
