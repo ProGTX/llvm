@@ -31,6 +31,9 @@ target_include_directories(piapi PUBLIC
   "$<BUILD_INTERFACE:${pi_include_dir}>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
 )
+target_include_directories(piapi INTERFACE
+  "$<INSTALL_INTERFACE:include>"
+)
 target_link_libraries(piapi PUBLIC ${CMAKE_DL_LIBS})
 
 ################################################################################
