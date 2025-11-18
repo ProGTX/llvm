@@ -2188,7 +2188,7 @@ void ASTDeclReader::ReadCXXRecordDefinition(CXXRecordDecl *D, bool Update,
          "lambda definition should not be added by update record");
   if (IsLambda)
     DD = new (C) CXXRecordDecl::LambdaDefinitionData(
-        D, nullptr, CXXRecordDecl::LDK_Unknown, false, LCD_None);
+        D, nullptr, CXXRecordDecl::LDK_Unknown, false, LCD_None, LCC_Implicit);
   else
     DD = new (C) struct CXXRecordDecl::DefinitionData(D);
 

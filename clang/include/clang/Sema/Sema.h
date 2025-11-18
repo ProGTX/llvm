@@ -9047,10 +9047,11 @@ public:
 
 public:
   /// Create a new lambda closure type.
-  CXXRecordDecl *createLambdaClosureType(SourceRange IntroducerRange,
-                                         TypeSourceInfo *Info,
-                                         unsigned LambdaDependencyKind,
-                                         LambdaCaptureDefault CaptureDefault);
+  CXXRecordDecl *
+  createLambdaClosureType(SourceRange IntroducerRange, TypeSourceInfo *Info,
+                          unsigned LambdaDependencyKind,
+                          LambdaCaptureDefault CaptureDefault,
+                          LambdaCaptureConstness DefaultCaptureConstness);
 
   /// Number lambda for linkage purposes if necessary.
   void handleLambdaNumbering(CXXRecordDecl *Class, CXXMethodDecl *Method,
@@ -9061,6 +9062,7 @@ public:
   void buildLambdaScope(sema::LambdaScopeInfo *LSI, CXXMethodDecl *CallOperator,
                         SourceRange IntroducerRange,
                         LambdaCaptureDefault CaptureDefault,
+                        LambdaCaptureConstness DefaultCaptureConstness,
                         SourceLocation CaptureDefaultLoc, bool ExplicitParams,
                         bool Mutable);
 

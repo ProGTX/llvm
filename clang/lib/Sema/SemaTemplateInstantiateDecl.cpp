@@ -2580,7 +2580,7 @@ Decl *TemplateDeclInstantiator::VisitCXXRecordDecl(CXXRecordDecl *D) {
     Record = CXXRecordDecl::CreateLambda(
         SemaRef.Context, Owner, D->getLambdaTypeInfo(), D->getLocation(),
         D->getLambdaDependencyKind(), D->isGenericLambda(),
-        D->getLambdaCaptureDefault());
+        D->getLambdaCaptureDefault(), D->getLambdaDefaultCaptureConstness());
   else
     Record = CXXRecordDecl::Create(SemaRef.Context, D->getTagKind(), Owner,
                                    D->getBeginLoc(), D->getLocation(),

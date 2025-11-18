@@ -401,6 +401,10 @@ private:
     LLVM_PREFERRED_TYPE(LambdaCaptureDefault)
     unsigned CaptureDefault : 2;
 
+    // The constness specifier of the default capture
+    LLVM_PREFERRED_TYPE(LambdaCaptureConstness)
+    unsigned DefaultCaptureConstness : 2;
+
     /// The number of captures in this lambda is limited 2^NumCaptures.
     unsigned NumCaptures : 15;
 
@@ -435,9 +439,11 @@ private:
     TypeSourceInfo *MethodTyInfo;
 
     LambdaDefinitionData(CXXRecordDecl *D, TypeSourceInfo *Info, unsigned DK,
-                         bool IsGeneric, LambdaCaptureDefault CaptureDefault)
+                         bool IsGeneric, LambdaCaptureDefault CaptureDefault,
+                         LambdaCaptureConstness DefaultCaptureConstness)
         : DefinitionData(D), DependencyKind(DK), IsGenericLambda(IsGeneric),
-          CaptureDefault(CaptureDefault), NumCaptures(0),
+          CaptureDefault(CaptureDefault),
+          DefaultCaptureConstness(DefaultCaptureConstness), NumCaptures(0),
           NumExplicitCaptures(0), HasKnownInternalLinkage(0), ManglingNumber(0),
           IndexInContext(0), MethodTyInfo(Info) {
       IsLambda = true;
@@ -564,10 +570,11 @@ public:
                                SourceLocation StartLoc, SourceLocation IdLoc,
                                IdentifierInfo *Id,
                                CXXRecordDecl *PrevDecl = nullptr);
-  static CXXRecordDecl *CreateLambda(const ASTContext &C, DeclContext *DC,
-                                     TypeSourceInfo *Info, SourceLocation Loc,
-                                     unsigned DependencyKind, bool IsGeneric,
-                                     LambdaCaptureDefault CaptureDefault);
+  static CXXRecordDecl *
+  CreateLambda(const ASTContext &C, DeclContext *DC, TypeSourceInfo *Info,
+               SourceLocation Loc, unsigned DependencyKind, bool IsGeneric,
+               LambdaCaptureDefault CaptureDefault,
+               LambdaCaptureConstness DefaultCaptureConstness);
   static CXXRecordDecl *CreateDeserialized(const ASTContext &C,
                                            GlobalDeclID ID);
 
@@ -1059,6 +1066,12 @@ public:
   LambdaCaptureDefault getLambdaCaptureDefault() const {
     assert(isLambda());
     return static_cast<LambdaCaptureDefault>(getLambdaData().CaptureDefault);
+  }
+
+  LambdaCaptureConstness getLambdaDefaultCaptureConstness() const {
+    assert(isLambda());
+    return static_cast<LambdaCaptureConstness>(
+        getLambdaData().DefaultCaptureConstness);
   }
 
   bool isCapturelessLambda() const {

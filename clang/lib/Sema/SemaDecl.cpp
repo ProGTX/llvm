@@ -15994,6 +15994,8 @@ LambdaScopeInfo *Sema::RebuildLambdaScopeInfo(CXXMethodDecl *CallOperator) {
   if (FunctionTemplateDecl *FTD = CallOperator->getDescribedFunctionTemplate())
     LSI->GLTemplateParameterList = FTD->getTemplateParameters();
   const LambdaCaptureDefault LCD = LambdaClass->getLambdaCaptureDefault();
+  const LambdaCaptureConstness LDCC =
+      LambdaClass->getLambdaDefaultCaptureConstness(); // TODO
 
   if (LCD == LCD_None)
     LSI->ImpCaptureStyle = CapturingScopeInfo::ImpCap_None;

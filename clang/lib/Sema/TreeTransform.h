@@ -15634,16 +15634,17 @@ TreeTransform<Derived>::TransformLambdaExpr(LambdaExpr *E) {
   CXXRecordDecl *OldClass = E->getLambdaClass();
   CXXRecordDecl *Class = getSema().createLambdaClosureType(
       E->getIntroducerRange(), /*Info=*/nullptr, DependencyKind,
-      E->getCaptureDefault());
+      E->getCaptureDefault(), E->getDefaultCaptureConstness());
   getDerived().transformedLocalDecl(OldClass, {Class});
 
   CXXMethodDecl *NewCallOperator =
       getSema().CreateLambdaCallOperator(E->getIntroducerRange(), Class);
 
   // Enter the scope of the lambda.
-  getSema().buildLambdaScope(LSI, NewCallOperator, E->getIntroducerRange(),
-                             E->getCaptureDefault(), E->getCaptureDefaultLoc(),
-                             E->hasExplicitParameters(), E->isMutable());
+  getSema().buildLambdaScope(
+      LSI, NewCallOperator, E->getIntroducerRange(), E->getCaptureDefault(),
+      E->getDefaultCaptureConstness(), E->getCaptureDefaultLoc(),
+      E->hasExplicitParameters(), E->isMutable());
 
   // Introduce the context of the call operator.
   Sema::ContextRAII SavedContext(getSema(), NewCallOperator,

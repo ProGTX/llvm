@@ -38,6 +38,13 @@ enum LambdaCaptureKind {
   LCK_VLAType ///< Capturing variable-length array type
 };
 
+/// Whether const or mutable was specified on a capture, or none
+enum LambdaCaptureConstness {
+  LCC_Implicit,        ///< No const or mutable
+  LCC_ExplicitConst,   ///< const specified
+  LCC_ExplicitMutable, ///< mutable specified
+};
+
 } // end namespace clang
 
 #endif // LLVM_CLANG_BASIC_LAMBDA_H

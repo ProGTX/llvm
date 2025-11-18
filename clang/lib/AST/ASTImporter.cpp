@@ -3411,7 +3411,8 @@ ExpectedDecl ASTNodeImporter::VisitRecordDecl(RecordDecl *D) {
       if (GetImportedOrCreateSpecialDecl(
               D2CXX, CXXRecordDecl::CreateLambda, D, Importer.getToContext(),
               DC, *TInfoOrErr, Loc, DCXX->getLambdaDependencyKind(),
-              DCXX->isGenericLambda(), DCXX->getLambdaCaptureDefault()))
+              DCXX->isGenericLambda(), DCXX->getLambdaCaptureDefault(),
+              DCXX->getLambdaDefaultCaptureConstness()))
         return D2CXX;
       CXXRecordDecl::LambdaNumbering Numbering = DCXX->getLambdaNumbering();
       ExpectedDecl CDeclOrErr = import(Numbering.ContextDecl);
@@ -8970,8 +8971,9 @@ ExpectedStmt ASTNodeImporter::VisitLambdaExpr(LambdaExpr *E) {
     return std::move(Err);
 
   return LambdaExpr::Create(Importer.getToContext(), ToClass, ToIntroducerRange,
-                            E->getCaptureDefault(), ToCaptureDefaultLoc,
-                            E->hasExplicitParameters(),
+                            E->getCaptureDefault(),
+                            E->getDefaultCaptureConstness(),
+                            ToCaptureDefaultLoc, E->hasExplicitParameters(),
                             E->hasExplicitResultType(), ToCaptureInits,
                             ToEndLoc, E->containsUnexpandedParameterPack());
 }

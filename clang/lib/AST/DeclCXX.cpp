@@ -141,12 +141,14 @@ CXXRecordDecl *
 CXXRecordDecl::CreateLambda(const ASTContext &C, DeclContext *DC,
                             TypeSourceInfo *Info, SourceLocation Loc,
                             unsigned DependencyKind, bool IsGeneric,
-                            LambdaCaptureDefault CaptureDefault) {
+                            LambdaCaptureDefault CaptureDefault,
+                            LambdaCaptureConstness DefaultCaptureConstness) {
   auto *R = new (C, DC) CXXRecordDecl(CXXRecord, TagTypeKind::Class, C, DC, Loc,
                                       Loc, nullptr, nullptr);
   R->setBeingDefined(true);
   R->DefinitionData = new (C) struct LambdaDefinitionData(
-      R, Info, DependencyKind, IsGeneric, CaptureDefault);
+      R, Info, DependencyKind, IsGeneric, CaptureDefault,
+      DefaultCaptureConstness);
   R->setImplicit(true);
   return R;
 }

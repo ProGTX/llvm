@@ -1272,6 +1272,7 @@ LambdaCaptureKind LambdaCapture::getCaptureKind() const {
 
 LambdaExpr::LambdaExpr(QualType T, SourceRange IntroducerRange,
                        LambdaCaptureDefault CaptureDefault,
+                       LambdaCaptureConstness DefaultCaptureConstness,
                        SourceLocation CaptureDefaultLoc, bool ExplicitParams,
                        bool ExplicitResultType, ArrayRef<Expr *> CaptureInits,
                        SourceLocation ClosingBrace,
@@ -1281,6 +1282,7 @@ LambdaExpr::LambdaExpr(QualType T, SourceRange IntroducerRange,
       ClosingBrace(ClosingBrace) {
   LambdaExprBits.NumCaptures = CaptureInits.size();
   LambdaExprBits.CaptureDefault = CaptureDefault;
+  LambdaExprBits.DefaultCaptureConstness = DefaultCaptureConstness;
   LambdaExprBits.ExplicitParams = ExplicitParams;
   LambdaExprBits.ExplicitResultType = ExplicitResultType;
 
@@ -1288,6 +1290,8 @@ LambdaExpr::LambdaExpr(QualType T, SourceRange IntroducerRange,
   (void)Class;
   assert(capture_size() == Class->capture_size() && "Wrong number of captures");
   assert(getCaptureDefault() == Class->getLambdaCaptureDefault());
+  assert(getDefaultCaptureConstness() ==
+         Class->getLambdaDefaultCaptureConstness());
 
   // Copy initialization expressions for the non-static data members.
   Stmt **Stored = getStoredStmts();
@@ -1312,6 +1316,7 @@ LambdaExpr::LambdaExpr(EmptyShell Empty, unsigned NumCaptures)
 LambdaExpr *LambdaExpr::Create(const ASTContext &Context, CXXRecordDecl *Class,
                                SourceRange IntroducerRange,
                                LambdaCaptureDefault CaptureDefault,
+                               LambdaCaptureConstness DefaultCaptureConstness,
                                SourceLocation CaptureDefaultLoc,
                                bool ExplicitParams, bool ExplicitResultType,
                                ArrayRef<Expr *> CaptureInits,
@@ -1324,9 +1329,9 @@ LambdaExpr *LambdaExpr::Create(const ASTContext &Context, CXXRecordDecl *Class,
   unsigned Size = totalSizeToAlloc<Stmt *>(CaptureInits.size() + 1);
   void *Mem = Context.Allocate(Size);
   return new (Mem)
-      LambdaExpr(T, IntroducerRange, CaptureDefault, CaptureDefaultLoc,
-                 ExplicitParams, ExplicitResultType, CaptureInits, ClosingBrace,
-                 ContainsUnexpandedParameterPack);
+      LambdaExpr(T, IntroducerRange, CaptureDefault, DefaultCaptureConstness,
+                 CaptureDefaultLoc, ExplicitParams, ExplicitResultType,
+                 CaptureInits, ClosingBrace, ContainsUnexpandedParameterPack);
 }
 
 LambdaExpr *LambdaExpr::CreateDeserialized(const ASTContext &C,

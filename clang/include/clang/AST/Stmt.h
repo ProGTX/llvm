@@ -1169,6 +1169,10 @@ protected:
     LLVM_PREFERRED_TYPE(LambdaCaptureDefault)
     unsigned CaptureDefault : 2;
 
+    /// Specified constness of the default capture
+    LLVM_PREFERRED_TYPE(LambdaCaptureConstness)
+    unsigned DefaultCaptureConstness : 2;
+
     /// Whether this lambda had an explicit parameter list vs. an
     /// implicit (and empty) parameter list.
     LLVM_PREFERRED_TYPE(bool)

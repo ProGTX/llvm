@@ -2828,6 +2828,7 @@ struct LambdaIntroducer {
   SourceRange Range;
   SourceLocation DefaultLoc;
   LambdaCaptureDefault Default = LCD_None;
+  LambdaCaptureConstness DefaultCaptureConstness = LCC_Implicit;
   SmallVector<LambdaCapture, 4> Captures;
 
   LambdaIntroducer() = default;

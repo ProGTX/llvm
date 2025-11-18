@@ -247,7 +247,8 @@ getGenericLambdaTemplateParameterList(LambdaScopeInfo *LSI, Sema &SemaRef) {
 CXXRecordDecl *
 Sema::createLambdaClosureType(SourceRange IntroducerRange, TypeSourceInfo *Info,
                               unsigned LambdaDependencyKind,
-                              LambdaCaptureDefault CaptureDefault) {
+                              LambdaCaptureDefault CaptureDefault,
+                              LambdaCaptureConstness DefaultCaptureConstness) {
   DeclContext *DC = CurContext;
 
   bool IsGenericLambda =
@@ -255,7 +256,7 @@ Sema::createLambdaClosureType(SourceRange IntroducerRange, TypeSourceInfo *Info,
   // Start constructing the lambda class.
   CXXRecordDecl *Class = CXXRecordDecl::CreateLambda(
       Context, DC, Info, IntroducerRange.getBegin(), LambdaDependencyKind,
-      IsGenericLambda, CaptureDefault);
+      IsGenericLambda, CaptureDefault, DefaultCaptureConstness);
   DC->addDecl(Class);
 
   return Class;
@@ -543,6 +544,7 @@ static void buildLambdaScopeReturnType(Sema &S, LambdaScopeInfo *LSI,
 void Sema::buildLambdaScope(LambdaScopeInfo *LSI, CXXMethodDecl *CallOperator,
                             SourceRange IntroducerRange,
                             LambdaCaptureDefault CaptureDefault,
+                            LambdaCaptureConstness DefaultCaptureConstness,
                             SourceLocation CaptureDefaultLoc,
                             bool ExplicitParams, bool Mutable) {
   LSI->CallOperator = CallOperator;
@@ -552,6 +554,7 @@ void Sema::buildLambdaScope(LambdaScopeInfo *LSI, CXXMethodDecl *CallOperator,
     LSI->ImpCaptureStyle = LambdaScopeInfo::ImpCap_LambdaByval;
   else if (CaptureDefault == LCD_ByRef)
     LSI->ImpCaptureStyle = LambdaScopeInfo::ImpCap_LambdaByref;
+  // TODO: DefaultCaptureConstness
   LSI->CaptureDefaultLoc = CaptureDefaultLoc;
   LSI->IntroducerRange = IntroducerRange;
   LSI->ExplicitParams = ExplicitParams;
@@ -1123,7 +1126,8 @@ void Sema::ActOnLambdaExpressionAfterIntroducer(LambdaIntroducer &Intro,
   }
 
   CXXRecordDecl *Class = createLambdaClosureType(
-      Intro.Range, /*Info=*/nullptr, LambdaDependencyKind, Intro.Default);
+      Intro.Range, /*Info=*/nullptr, LambdaDependencyKind, Intro.Default,
+      Intro.DefaultCaptureConstness);
   LSI->Lambda = Class;
 
   CXXMethodDecl *Method = CreateLambdaCallOperator(Intro.Range, Class);
@@ -2141,6 +2145,7 @@ ExprResult Sema::BuildLambdaExpr(SourceLocation StartLoc,
   SourceLocation CaptureDefaultLoc = LSI->CaptureDefaultLoc;
   LambdaCaptureDefault CaptureDefault =
       mapImplicitCaptureStyle(LSI->ImpCaptureStyle);
+  LambdaCaptureConstness DefaultCaptureConstness = LCC_Implicit; // TODO
   CXXRecordDecl *Class = LSI->Lambda;
   CXXMethodDecl *CallOperator = LSI->CallOperator;
   SourceRange IntroducerRange = LSI->IntroducerRange;
@@ -2277,10 +2282,10 @@ ExprResult Sema::BuildLambdaExpr(SourceLocation StartLoc,
 
   Cleanup.mergeFrom(LambdaCleanup);
 
-  LambdaExpr *Lambda =
-      LambdaExpr::Create(Context, Class, IntroducerRange, CaptureDefault,
-                         CaptureDefaultLoc, ExplicitParams, ExplicitResultType,
-                         CaptureInits, EndLoc, ContainsUnexpandedParameterPack);
+  LambdaExpr *Lambda = LambdaExpr::Create(
+      Context, Class, IntroducerRange, CaptureDefault, DefaultCaptureConstness,
+      CaptureDefaultLoc, ExplicitParams, ExplicitResultType, CaptureInits,
+      EndLoc, ContainsUnexpandedParameterPack);
 
   // If the lambda expression's call operator is not explicitly marked constexpr
   // and is not dependent, analyze the call operator to infer

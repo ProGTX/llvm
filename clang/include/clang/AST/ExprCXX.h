@@ -1989,6 +1989,7 @@ class LambdaExpr final : public Expr,
   /// Construct a lambda expression.
   LambdaExpr(QualType T, SourceRange IntroducerRange,
              LambdaCaptureDefault CaptureDefault,
+             LambdaCaptureConstness DefaultCaptureConstness,
              SourceLocation CaptureDefaultLoc, bool ExplicitParams,
              bool ExplicitResultType, ArrayRef<Expr *> CaptureInits,
              SourceLocation ClosingBrace, bool ContainsUnexpandedParameterPack);
@@ -2009,10 +2010,11 @@ public:
   /// Construct a new lambda expression.
   static LambdaExpr *
   Create(const ASTContext &C, CXXRecordDecl *Class, SourceRange IntroducerRange,
-         LambdaCaptureDefault CaptureDefault, SourceLocation CaptureDefaultLoc,
-         bool ExplicitParams, bool ExplicitResultType,
-         ArrayRef<Expr *> CaptureInits, SourceLocation ClosingBrace,
-         bool ContainsUnexpandedParameterPack);
+         LambdaCaptureDefault CaptureDefault,
+         LambdaCaptureConstness DefaultCaptureConstness,
+         SourceLocation CaptureDefaultLoc, bool ExplicitParams,
+         bool ExplicitResultType, ArrayRef<Expr *> CaptureInits,
+         SourceLocation ClosingBrace, bool ContainsUnexpandedParameterPack);
 
   /// Construct a new lambda expression that will be deserialized from
   /// an external source.
@@ -2022,6 +2024,12 @@ public:
   /// Determine the default capture kind for this lambda.
   LambdaCaptureDefault getCaptureDefault() const {
     return static_cast<LambdaCaptureDefault>(LambdaExprBits.CaptureDefault);
+  }
+
+  /// Determine the constness specified for the default capture kind
+  LambdaCaptureConstness getDefaultCaptureConstness() const {
+    return static_cast<LambdaCaptureConstness>(
+        LambdaExprBits.DefaultCaptureConstness);
   }
 
   /// Retrieve the location of this lambda's capture-default, if any.
