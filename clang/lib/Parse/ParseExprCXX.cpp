@@ -1143,12 +1143,13 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
   return false;
 }
 
-static void tryConsumeLambdaSpecifierToken(Parser &P,
+static void tryConsumeLambdaSpecifierToken(Parser &P, SourceLocation &ConstLoc,
                                            SourceLocation &MutableLoc,
                                            SourceLocation &StaticLoc,
                                            SourceLocation &ConstexprLoc,
                                            SourceLocation &ConstevalLoc,
                                            SourceLocation &DeclEndLoc) {
+  assert(ConstLoc.isInvalid());
   assert(MutableLoc.isInvalid());
   assert(StaticLoc.isInvalid());
   assert(ConstexprLoc.isInvalid());
@@ -1171,6 +1172,9 @@ static void tryConsumeLambdaSpecifierToken(Parser &P,
 
   while (true) {
     switch (P.getCurToken().getKind()) {
+    case tok::kw_const:
+      ConsumeLocation(ConstLoc, 0);
+      break;
     case tok::kw_mutable:
       ConsumeLocation(MutableLoc, 0);
       break;
@@ -1236,9 +1240,16 @@ static void addConstevalToLambdaDeclSpecifier(Parser &P,
 }
 
 static void DiagnoseStaticSpecifierRestrictions(Parser &P,
-                                                SourceLocation StaticLoc,
+                                                SourceLocation ConstLoc,
                                                 SourceLocation MutableLoc,
+                                                SourceLocation StaticLoc,
                                                 const LambdaIntroducer &Intro) {
+  if (ConstLoc.isValid() && MutableLoc.isValid()) {
+    // Cannot specify both const and mutable on a lambda
+    // TODO: New error
+    P.Diag(ConstLoc, diag::err_static_mutable_lambda);
+  }
+
   if (StaticLoc.isInvalid())
     return;
 
@@ -1246,8 +1257,10 @@ static void DiagnoseStaticSpecifierRestrictions(Parser &P,
   // The lambda-specifier-seq shall not contain both mutable and static.
   // If the lambda-specifier-seq contains static, there shall be no
   // lambda-capture.
-  if (MutableLoc.isValid())
+  if (ConstLoc.isValid() || MutableLoc.isValid()) {
+    // TODO: Update error
     P.Diag(StaticLoc, diag::err_static_mutable_lambda);
+  }
   if (Intro.hasLambdaCapture()) {
     P.Diag(StaticLoc, diag::err_static_lambda_captures);
   }
@@ -1364,6 +1377,7 @@ ExprResult Parser::ParseLambdaExpressionAfterIntroducer(
   SourceLocation DeclEndLoc;
   bool HasParentheses = false;
   bool HasSpecifiers = false;
+  SourceLocation ConstLoc;
   SourceLocation MutableLoc;
 
   ParseScope Prototype(this, Scope::FunctionPrototypeScope |
@@ -1426,10 +1440,11 @@ ExprResult Parser::ParseLambdaExpressionAfterIntroducer(
     SourceLocation ConstevalLoc;
     SourceLocation StaticLoc;
 
-    tryConsumeLambdaSpecifierToken(*this, MutableLoc, StaticLoc, ConstexprLoc,
-                                   ConstevalLoc, DeclEndLoc);
+    tryConsumeLambdaSpecifierToken(*this, ConstLoc, MutableLoc, StaticLoc,
+                                   ConstexprLoc, ConstevalLoc, DeclEndLoc);
 
-    DiagnoseStaticSpecifierRestrictions(*this, StaticLoc, MutableLoc, Intro);
+    DiagnoseStaticSpecifierRestrictions(*this, ConstLoc, MutableLoc, StaticLoc,
+                                        Intro);
 
     addStaticToLambdaDeclSpecifier(*this, StaticLoc, DS);
     addConstexprToLambdaDeclSpecifier(*this, ConstexprLoc, DS);
@@ -1438,8 +1453,10 @@ ExprResult Parser::ParseLambdaExpressionAfterIntroducer(
 
   Actions.ActOnLambdaClosureParameters(getCurScope(), ParamInfo);
 
-  if (!HasParentheses)
+  if (!HasParentheses) {
+    // We don't care about ConstLoc here because lambdas are const by default
     Actions.ActOnLambdaClosureQualifiers(Intro, MutableLoc);
+  }
 
   if (HasSpecifiers || HasParentheses) {
     // Parse exception-specification[opt].
@@ -1481,15 +1498,26 @@ ExprResult Parser::ParseLambdaExpressionAfterIntroducer(
         DeclEndLoc = Range.getEnd();
     }
 
+    SourceLocation ConstnessLoc;
+    LambdaCaptureConstness ConstnessQualifier = LCC_Implicit;
+    if (ConstLoc.isValid()) {
+      ConstnessLoc = ConstLoc;
+      ConstnessQualifier = LCC_ExplicitConst;
+    } else if (MutableLoc.isValid()) {
+      ConstnessLoc = MutableLoc;
+      ConstnessQualifier = LCC_ExplicitMutable;
+    }
+
     SourceLocation NoLoc;
     D.AddTypeInfo(DeclaratorChunk::getFunction(
                       /*HasProto=*/true,
                       /*IsAmbiguous=*/false, LParenLoc, ParamInfo.data(),
                       ParamInfo.size(), EllipsisLoc, RParenLoc,
                       /*RefQualifierIsLvalueRef=*/true,
-                      /*RefQualifierLoc=*/NoLoc, MutableLoc, ESpecType,
-                      ESpecRange, DynamicExceptions.data(),
-                      DynamicExceptionRanges.data(), DynamicExceptions.size(),
+                      /*RefQualifierLoc=*/NoLoc, ConstnessLoc,
+                      ConstnessQualifier, ESpecType, ESpecRange,
+                      DynamicExceptions.data(), DynamicExceptionRanges.data(),
+                      DynamicExceptions.size(),
                       NoexceptExpr.isUsable() ? NoexceptExpr.get() : nullptr,
                       /*ExceptionSpecTokens*/ nullptr,
                       /*DeclsInPrototype=*/{}, LParenLoc, FunLocalRangeEnd, D,
@@ -1498,8 +1526,10 @@ ExprResult Parser::ParseLambdaExpressionAfterIntroducer(
 
     // We have called ActOnLambdaClosureQualifiers for parentheses-less cases
     // above.
-    if (HasParentheses)
+    if (HasParentheses) {
+      // We don't care about ConstLoc here because lambdas are const by default
       Actions.ActOnLambdaClosureQualifiers(Intro, MutableLoc);
+    }
 
     if (HasParentheses && Tok.is(tok::kw_requires))
       ParseTrailingRequiresClause(D);

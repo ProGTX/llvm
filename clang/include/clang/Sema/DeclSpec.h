@@ -1382,9 +1382,12 @@ struct DeclaratorChunk {
     /// If this is an invalid location, there is no ref-qualifier.
     SourceLocation RefQualifierLoc;
 
-    /// The location of the 'mutable' qualifer in a lambda-declarator, if
-    /// any.
-    SourceLocation MutableLoc;
+    /// The location of the 'const' or 'mutable' qualifier
+    /// in a lambda-declarator, if any.
+    SourceLocation ConstnessLoc;
+
+    /// Kind of constness qualifier for this lambda.
+    LambdaCaptureConstness ConstnessQualifier;
 
     /// The beginning location of the exception specification, if any.
     SourceLocation ExceptionSpecLocBeg;
@@ -1516,8 +1519,8 @@ struct DeclaratorChunk {
       return MethodQualifiers->getRestrictSpecLoc();
     }
 
-    /// Retrieve the location of the 'mutable' qualifier, if any.
-    SourceLocation getMutableLoc() const { return MutableLoc; }
+    /// Retrieve the location of the 'const' or 'mutable' qualifier, if any.
+    SourceLocation getConstnessLoc() const { return ConstnessLoc; }
 
     /// Determine whether this function declaration contains a
     /// ref-qualifier.
@@ -1525,7 +1528,9 @@ struct DeclaratorChunk {
 
     /// Determine whether this lambda-declarator contains a 'mutable'
     /// qualifier.
-    bool hasMutableQualifier() const { return getMutableLoc().isValid(); }
+    bool hasMutableQualifier() const {
+      return ConstnessQualifier == LCC_ExplicitMutable;
+    }
 
     /// Determine whether this method has qualifiers.
     bool hasMethodTypeQualifiers() const {
@@ -1689,7 +1694,8 @@ struct DeclaratorChunk {
                                      SourceLocation RParenLoc,
                                      bool RefQualifierIsLvalueRef,
                                      SourceLocation RefQualifierLoc,
-                                     SourceLocation MutableLoc,
+                                     SourceLocation ConstnessLoc,
+                                     LambdaCaptureConstness ConstnessQualifier,
                                      ExceptionSpecificationType ESpecType,
                                      SourceRange ESpecRange,
                                      ParsedType *Exceptions,

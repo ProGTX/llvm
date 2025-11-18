@@ -138,7 +138,8 @@ DeclaratorChunk DeclaratorChunk::getFunction(bool hasProto,
                                              SourceLocation RParenLoc,
                                              bool RefQualifierIsLvalueRef,
                                              SourceLocation RefQualifierLoc,
-                                             SourceLocation MutableLoc,
+                                             SourceLocation ConstnessLoc,
+                                             LambdaCaptureConstness ConstnessQualifier,
                                              ExceptionSpecificationType
                                                  ESpecType,
                                              SourceRange ESpecRange,
@@ -175,7 +176,8 @@ DeclaratorChunk DeclaratorChunk::getFunction(bool hasProto,
   I.Fun.Params                  = nullptr;
   I.Fun.RefQualifierIsLValueRef = RefQualifierIsLvalueRef;
   I.Fun.RefQualifierLoc         = RefQualifierLoc;
-  I.Fun.MutableLoc              = MutableLoc;
+  I.Fun.ConstnessLoc            = ConstnessLoc;
+  I.Fun.ConstnessQualifier      = ConstnessQualifier;
   I.Fun.ExceptionSpecType       = ESpecType;
   I.Fun.ExceptionSpecLocBeg     = ESpecRange.getBegin();
   I.Fun.ExceptionSpecLocEnd     = ESpecRange.getEnd();

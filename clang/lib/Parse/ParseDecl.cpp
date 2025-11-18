@@ -7343,18 +7343,17 @@ void Parser::ParseFunctionDeclarator(Declarator &D,
   }
 
   // Remember that we parsed a function type, and remember the attributes.
-  D.AddTypeInfo(DeclaratorChunk::getFunction(
-                    HasProto, IsAmbiguous, LParenLoc, ParamInfo.data(),
-                    ParamInfo.size(), EllipsisLoc, RParenLoc,
-                    RefQualifierIsLValueRef, RefQualifierLoc,
-                    /*MutableLoc=*/SourceLocation(),
-                    ESpecType, ESpecRange, DynamicExceptions.data(),
-                    DynamicExceptionRanges.data(), DynamicExceptions.size(),
-                    NoexceptExpr.isUsable() ? NoexceptExpr.get() : nullptr,
-                    ExceptionSpecTokens, DeclsInPrototype, StartLoc,
-                    LocalEndLoc, D, TrailingReturnType, TrailingReturnTypeLoc,
-                    &DS),
-                std::move(FnAttrs), EndLoc);
+  D.AddTypeInfo(
+      DeclaratorChunk::getFunction(
+          HasProto, IsAmbiguous, LParenLoc, ParamInfo.data(), ParamInfo.size(),
+          EllipsisLoc, RParenLoc, RefQualifierIsLValueRef, RefQualifierLoc,
+          /*ConstnessLoc=*/SourceLocation(), LCC_Implicit, ESpecType,
+          ESpecRange, DynamicExceptions.data(), DynamicExceptionRanges.data(),
+          DynamicExceptions.size(),
+          NoexceptExpr.isUsable() ? NoexceptExpr.get() : nullptr,
+          ExceptionSpecTokens, DeclsInPrototype, StartLoc, LocalEndLoc, D,
+          TrailingReturnType, TrailingReturnTypeLoc, &DS),
+      std::move(FnAttrs), EndLoc);
 }
 
 bool Parser::ParseRefQualifier(bool &RefQualifierIsLValueRef,
