@@ -850,6 +850,7 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
 
     // Parse capture.
     LambdaCaptureKind Kind = LCK_ByCopy;
+    LambdaCaptureConstness Constness = LCC_Implicit; // TODO
     LambdaCaptureInitKind InitKind = LambdaCaptureInitKind::NoInit;
     SourceLocation Loc;
     IdentifierInfo *Id = nullptr;
@@ -1081,7 +1082,7 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
 
     SourceLocation LocEnd = PrevTokLocation;
 
-    Intro.addCapture(Kind, Loc, Id, EllipsisLoc, InitKind, Init,
+    Intro.addCapture(Kind, Constness, Loc, Id, EllipsisLoc, InitKind, Init,
                      InitCaptureType, SourceRange(LocStart, LocEnd));
   }
 

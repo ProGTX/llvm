@@ -1232,9 +1232,11 @@ CXXConstructExpr::CXXConstructExpr(StmtClass SC, EmptyShell Empty,
     : Expr(SC, Empty), NumArgs(NumArgs) {}
 
 LambdaCapture::LambdaCapture(SourceLocation Loc, bool Implicit,
-                             LambdaCaptureKind Kind, ValueDecl *Var,
+                             LambdaCaptureKind Kind,
+                             LambdaCaptureConstness Constness, ValueDecl *Var,
                              SourceLocation EllipsisLoc)
-    : DeclAndBits(Var, 0), Loc(Loc), EllipsisLoc(EllipsisLoc) {
+    : DeclAndBits(Var, 0), CaptureConstness(Constness), Loc(Loc),
+      EllipsisLoc(EllipsisLoc) {
   unsigned Bits = 0;
   if (Implicit)
     Bits |= Capture_Implicit;

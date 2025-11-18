@@ -2057,19 +2057,21 @@ void ASTDeclReader::ReadCXXDefinitionData(
       bool IsImplicit = CaptureBits.getNextBit();
       auto Kind =
           static_cast<LambdaCaptureKind>(CaptureBits.getNextBits(/*Width=*/3));
+      LambdaCaptureConstness Constness = LCC_Implicit; /// TODO
       switch (Kind) {
       case LCK_StarThis:
       case LCK_This:
       case LCK_VLAType:
-        new (ToCapture)
-            Capture(Loc, IsImplicit, Kind, nullptr, SourceLocation());
+        new (ToCapture) Capture(Loc, IsImplicit, Kind, Constness, nullptr,
+                                SourceLocation());
         ToCapture++;
         break;
       case LCK_ByCopy:
       case LCK_ByRef:
         auto *Var = readDeclAs<ValueDecl>();
         SourceLocation EllipsisLoc = readSourceLocation();
-        new (ToCapture) Capture(Loc, IsImplicit, Kind, Var, EllipsisLoc);
+        new (ToCapture)
+            Capture(Loc, IsImplicit, Kind, Constness, Var, EllipsisLoc);
         ToCapture++;
         break;
       }

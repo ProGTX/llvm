@@ -1251,9 +1251,8 @@ Expected<LambdaCapture> ASTNodeImporter::import(const LambdaCapture &From) {
     if (Error Err = importInto(EllipsisLoc, From.getEllipsisLoc()))
       return std::move(Err);
 
-  return LambdaCapture(
-      *LocationOrErr, From.isImplicit(), From.getCaptureKind(), Var,
-      EllipsisLoc);
+  return LambdaCapture(*LocationOrErr, From.isImplicit(), From.getCaptureKind(),
+                       From.getCaptureConstness(), Var, EllipsisLoc);
 }
 
 template <typename T>

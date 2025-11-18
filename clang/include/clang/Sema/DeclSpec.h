@@ -2807,6 +2807,7 @@ struct LambdaIntroducer {
   /// An individual capture in a lambda introducer.
   struct LambdaCapture {
     LambdaCaptureKind Kind;
+    LambdaCaptureConstness Constness;
     SourceLocation Loc;
     IdentifierInfo *Id;
     SourceLocation EllipsisLoc;
@@ -2815,14 +2816,14 @@ struct LambdaIntroducer {
     ParsedType InitCaptureType;
     SourceRange ExplicitRange;
 
-    LambdaCapture(LambdaCaptureKind Kind, SourceLocation Loc,
-                  IdentifierInfo *Id, SourceLocation EllipsisLoc,
-                  LambdaCaptureInitKind InitKind, ExprResult Init,
-                  ParsedType InitCaptureType,
+    LambdaCapture(LambdaCaptureKind Kind, LambdaCaptureConstness Constness,
+                  SourceLocation Loc, IdentifierInfo *Id,
+                  SourceLocation EllipsisLoc, LambdaCaptureInitKind InitKind,
+                  ExprResult Init, ParsedType InitCaptureType,
                   SourceRange ExplicitRange)
-        : Kind(Kind), Loc(Loc), Id(Id), EllipsisLoc(EllipsisLoc),
-          InitKind(InitKind), Init(Init), InitCaptureType(InitCaptureType),
-          ExplicitRange(ExplicitRange) {}
+        : Kind(Kind), Constness(Constness), Loc(Loc), Id(Id),
+          EllipsisLoc(EllipsisLoc), InitKind(InitKind), Init(Init),
+          InitCaptureType(InitCaptureType), ExplicitRange(ExplicitRange) {}
   };
 
   SourceRange Range;
@@ -2838,16 +2839,14 @@ struct LambdaIntroducer {
   }
 
   /// Append a capture in a lambda introducer.
-  void addCapture(LambdaCaptureKind Kind,
-                  SourceLocation Loc,
-                  IdentifierInfo* Id,
-                  SourceLocation EllipsisLoc,
-                  LambdaCaptureInitKind InitKind,
-                  ExprResult Init,
-                  ParsedType InitCaptureType,
+  void addCapture(LambdaCaptureKind Kind, LambdaCaptureConstness Constness,
+                  SourceLocation Loc, IdentifierInfo *Id,
+                  SourceLocation EllipsisLoc, LambdaCaptureInitKind InitKind,
+                  ExprResult Init, ParsedType InitCaptureType,
                   SourceRange ExplicitRange) {
-    Captures.push_back(LambdaCapture(Kind, Loc, Id, EllipsisLoc, InitKind, Init,
-                                     InitCaptureType, ExplicitRange));
+    Captures.push_back(LambdaCapture(Kind, Constness, Loc, Id, EllipsisLoc,
+                                     InitKind, Init, InitCaptureType,
+                                     ExplicitRange));
   }
 };
 

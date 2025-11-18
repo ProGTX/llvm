@@ -48,6 +48,9 @@ class LambdaCapture {
   //   a capture of a VLA type.
   llvm::PointerIntPair<Decl*, 3> DeclAndBits;
 
+  /// Indicates whether the capture has an explicit const or mutable, or none.
+  LambdaCaptureConstness CaptureConstness;
+
   SourceLocation Loc;
   SourceLocation EllipsisLoc;
 
@@ -71,11 +74,16 @@ public:
   /// capture that is a pack expansion, or an invalid source
   /// location to indicate that this is not a pack expansion.
   LambdaCapture(SourceLocation Loc, bool Implicit, LambdaCaptureKind Kind,
+                LambdaCaptureConstness CaptureConstness,
                 ValueDecl *Var = nullptr,
                 SourceLocation EllipsisLoc = SourceLocation());
 
   /// Determine the kind of capture.
   LambdaCaptureKind getCaptureKind() const;
+
+  LambdaCaptureConstness getCaptureConstness() const {
+    return CaptureConstness;
+  }
 
   /// Determine whether this capture handles the C++ \c this
   /// pointer.

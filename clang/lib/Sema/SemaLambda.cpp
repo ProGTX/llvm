@@ -2215,6 +2215,7 @@ ExprResult Sema::BuildLambdaExpr(SourceLocation StartLoc,
 
     // Map the capture to our AST representation.
     LambdaCapture Capture = [&] {
+      LambdaCaptureConstness Constness = LCC_Implicit; // TODO
       if (From.isThisCapture()) {
         // Capturing 'this' implicitly with a default of '[=]' is deprecated,
         // because it results in a reference capture. Don't warn prior to
@@ -2227,15 +2228,17 @@ ExprResult Sema::BuildLambdaExpr(SourceLocation StartLoc,
                      getLocForEndOfToken(CaptureDefaultLoc), ", this");
         }
         return LambdaCapture(From.getLocation(), IsImplicit,
-                             From.isCopyCapture() ? LCK_StarThis : LCK_This);
+                             From.isCopyCapture() ? LCK_StarThis : LCK_This,
+                             Constness);
       } else if (From.isVLATypeCapture()) {
-        return LambdaCapture(From.getLocation(), IsImplicit, LCK_VLAType);
+        return LambdaCapture(From.getLocation(), IsImplicit, LCK_VLAType,
+                             Constness);
       } else {
         assert(From.isVariableCapture() && "unknown kind of capture");
         ValueDecl *Var = From.getVariable();
         LambdaCaptureKind Kind = From.isCopyCapture() ? LCK_ByCopy : LCK_ByRef;
-        return LambdaCapture(From.getLocation(), IsImplicit, Kind, Var,
-                             From.getEllipsisLoc());
+        return LambdaCapture(From.getLocation(), IsImplicit, Kind, Constness,
+                             Var, From.getEllipsisLoc());
       }
     }();
 
