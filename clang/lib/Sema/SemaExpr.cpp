@@ -18744,6 +18744,7 @@ MarkVarDeclODRUsed(ValueDecl *V, SourceLocation Loc, Sema &SemaRef,
   if (SemaRef.LangOpts.OpenMP)
     SemaRef.OpenMP().tryCaptureOpenMPLambdas(V);
   SemaRef.tryCaptureVariable(V, Loc, TryCaptureKind::Implicit,
+                             LCC_Implicit /* TODO: Is this correct? */,
                              /*EllipsisLoc*/ SourceLocation(),
                              /*BuildAndDiagnose*/ true, CaptureType,
                              DeclRefType, FunctionScopeIndexToStopAt);
@@ -19038,8 +19039,9 @@ static bool captureInBlock(BlockScopeInfo *BSI, ValueDecl *Var,
 
   // Actually capture the variable.
   if (BuildAndDiagnose)
-    BSI->addCapture(Var, HasBlocksAttr, ByRef, Nested, Loc, SourceLocation(),
-                    CaptureType, Invalid);
+    BSI->addCapture(Var, HasBlocksAttr, ByRef,
+                    LCC_Implicit /* TODO: Is this correct? */, Nested, Loc,
+                    SourceLocation(), CaptureType, Invalid);
 
   return !Invalid;
 }
@@ -19078,8 +19080,10 @@ static bool captureInCapturedRegion(
 
   // Actually capture the variable.
   if (BuildAndDiagnose)
-    RSI->addCapture(Var, /*isBlock*/ false, ByRef, RefersToCapturedVariable,
-                    Loc, SourceLocation(), CaptureType, Invalid);
+    RSI->addCapture(Var, /*isBlock*/ false, ByRef,
+                    LCC_Implicit /* TODO: Is this correct? */,
+                    RefersToCapturedVariable, Loc, SourceLocation(),
+                    CaptureType, Invalid);
 
   return !Invalid;
 }
@@ -19090,6 +19094,7 @@ static bool captureInLambda(LambdaScopeInfo *LSI, ValueDecl *Var,
                             QualType &CaptureType, QualType &DeclRefType,
                             const bool RefersToCapturedVariable,
                             const TryCaptureKind Kind,
+                            LambdaCaptureConstness Constness,
                             SourceLocation EllipsisLoc, const bool IsTopScope,
                             Sema &S, bool Invalid) {
   // Determine whether we are capturing by reference or by value.
@@ -19186,8 +19191,9 @@ static bool captureInLambda(LambdaScopeInfo *LSI, ValueDecl *Var,
 
   // Add the capture.
   if (BuildAndDiagnose)
-    LSI->addCapture(Var, /*isBlock=*/false, ByRef, RefersToCapturedVariable,
-                    Loc, EllipsisLoc, CaptureType, Invalid);
+    LSI->addCapture(Var, /*isBlock=*/false, ByRef, Constness,
+                    RefersToCapturedVariable, Loc, EllipsisLoc, CaptureType,
+                    Invalid);
 
   return !Invalid;
 }
@@ -19296,8 +19302,9 @@ static void buildLambdaCaptureFixit(Sema &Sema, LambdaScopeInfo *LSI,
 
 bool Sema::tryCaptureVariable(
     ValueDecl *Var, SourceLocation ExprLoc, TryCaptureKind Kind,
-    SourceLocation EllipsisLoc, bool BuildAndDiagnose, QualType &CaptureType,
-    QualType &DeclRefType, const unsigned *const FunctionScopeIndexToStopAt) {
+    LambdaCaptureConstness Constness, SourceLocation EllipsisLoc,
+    bool BuildAndDiagnose, QualType &CaptureType, QualType &DeclRefType,
+    const unsigned *const FunctionScopeIndexToStopAt) {
   // An init-capture is notionally from the context surrounding its
   // declaration, but its parent DC is the lambda class.
   DeclContext *VarDC = Var->getDeclContext();
@@ -19592,7 +19599,7 @@ bool Sema::tryCaptureVariable(
       LambdaScopeInfo *LSI = cast<LambdaScopeInfo>(CSI);
       Invalid =
           !captureInLambda(LSI, Var, ExprLoc, BuildAndDiagnose, CaptureType,
-                           DeclRefType, Nested, Kind, EllipsisLoc,
+                           DeclRefType, Nested, Kind, Constness, EllipsisLoc,
                            /*IsTopScope*/ I == N - 1, *this, Invalid);
       Nested = true;
     }
@@ -19604,19 +19611,21 @@ bool Sema::tryCaptureVariable(
 }
 
 bool Sema::tryCaptureVariable(ValueDecl *Var, SourceLocation Loc,
-                              TryCaptureKind Kind, SourceLocation EllipsisLoc) {
+                              TryCaptureKind Kind,
+                              LambdaCaptureConstness Constness,
+                              SourceLocation EllipsisLoc) {
   QualType CaptureType;
   QualType DeclRefType;
-  return tryCaptureVariable(Var, Loc, Kind, EllipsisLoc,
-                            /*BuildAndDiagnose=*/true, CaptureType,
-                            DeclRefType, nullptr);
+  return tryCaptureVariable(Var, Loc, Kind, Constness, EllipsisLoc,
+                            /*BuildAndDiagnose=*/true, CaptureType, DeclRefType,
+                            nullptr);
 }
 
 bool Sema::NeedToCaptureVariable(ValueDecl *Var, SourceLocation Loc) {
   QualType CaptureType;
   QualType DeclRefType;
   return !tryCaptureVariable(
-      Var, Loc, TryCaptureKind::Implicit, SourceLocation(),
+      Var, Loc, TryCaptureKind::Implicit, LCC_Implicit, SourceLocation(),
       /*BuildAndDiagnose=*/false, CaptureType, DeclRefType, nullptr);
 }
 
@@ -19627,9 +19636,10 @@ QualType Sema::getCapturedDeclRefType(ValueDecl *Var, SourceLocation Loc) {
   QualType DeclRefType;
 
   // Determine whether we can capture this variable.
-  if (tryCaptureVariable(Var, Loc, TryCaptureKind::Implicit, SourceLocation(),
-                         /*BuildAndDiagnose=*/false, CaptureType, DeclRefType,
-                         nullptr))
+  if (tryCaptureVariable(
+          Var, Loc, TryCaptureKind::Implicit,
+          LCC_Implicit /* TODO: Is this correct? */, SourceLocation(),
+          /*BuildAndDiagnose=*/false, CaptureType, DeclRefType, nullptr))
     return QualType();
 
   return DeclRefType;
@@ -20288,6 +20298,7 @@ static void DoMarkBindingDeclReferenced(Sema &SemaRef, SourceLocation Loc,
   if (OdrUse == OdrUseContext::Used) {
     QualType CaptureType, DeclRefType;
     SemaRef.tryCaptureVariable(BD, Loc, TryCaptureKind::Implicit,
+                               LCC_Implicit /* TODO: Is this correct? */,
                                /*EllipsisLoc*/ SourceLocation(),
                                /*BuildAndDiagnose*/ true, CaptureType,
                                DeclRefType,

@@ -210,6 +210,7 @@ UnsignedOrNone clang::getStackIndexOfNearestEnclosingCaptureCapableLambda(
     const bool CanCaptureVariable = !S.tryCaptureVariable(
         VarToCapture,
         /*ExprVarIsUsedInLoc*/ SourceLocation(), TryCaptureKind::Implicit,
+        LCC_Implicit /* TODO: Is this correct? */,
         /*EllipsisLoc*/ SourceLocation(),
         /*BuildAndDiagnose*/ false, CaptureType, DeclRefType,
         &IndexOfCaptureReadyLambda);
@@ -895,9 +896,10 @@ VarDecl *Sema::createLambdaInitCaptureVarDecl(
   return NewVD;
 }
 
-void Sema::addInitCapture(LambdaScopeInfo *LSI, VarDecl *Var, bool ByRef) {
+void Sema::addInitCapture(LambdaScopeInfo *LSI, VarDecl *Var, bool ByRef,
+                          LambdaCaptureConstness Constness) {
   assert(Var->isInitCapture() && "init capture flag should be set");
-  LSI->addCapture(Var, /*isBlock=*/false, ByRef,
+  LSI->addCapture(Var, /*isBlock=*/false, ByRef, Constness,
                   /*isNested=*/false, Var->getLocation(), SourceLocation(),
                   Var->getType(), /*Invalid=*/false);
 }
@@ -1092,6 +1094,7 @@ void Sema::ActOnLambdaExpressionAfterIntroducer(LambdaIntroducer &Intro,
     LSI->ImpCaptureStyle = LambdaScopeInfo::ImpCap_LambdaByval;
   else if (Intro.Default == LCD_ByRef)
     LSI->ImpCaptureStyle = LambdaScopeInfo::ImpCap_LambdaByref;
+  LSI->DefaultCaptureConstness = Intro.DefaultCaptureConstness;
   LSI->CaptureDefaultLoc = Intro.DefaultLoc;
   LSI->IntroducerRange = Intro.Range;
   LSI->AfterParameterList = false;
@@ -1346,12 +1349,13 @@ void Sema::ActOnLambdaExpressionAfterIntroducer(LambdaIntroducer &Intro,
     }
 
     if (C->Init.isUsable()) {
-      addInitCapture(LSI, cast<VarDecl>(Var), C->Kind == LCK_ByRef);
+      addInitCapture(LSI, cast<VarDecl>(Var), C->Kind == LCK_ByRef,
+                     C->Constness);
     } else {
       TryCaptureKind Kind = C->Kind == LCK_ByRef
                                 ? TryCaptureKind::ExplicitByRef
                                 : TryCaptureKind::ExplicitByVal;
-      tryCaptureVariable(Var, C->Loc, Kind, EllipsisLoc);
+      tryCaptureVariable(Var, C->Loc, Kind, C->Constness, EllipsisLoc);
     }
     if (!LSI->Captures.empty())
       LSI->ExplicitCaptureRanges[LSI->Captures.size() - 1] = C->ExplicitRange;
@@ -2145,7 +2149,7 @@ ExprResult Sema::BuildLambdaExpr(SourceLocation StartLoc,
   SourceLocation CaptureDefaultLoc = LSI->CaptureDefaultLoc;
   LambdaCaptureDefault CaptureDefault =
       mapImplicitCaptureStyle(LSI->ImpCaptureStyle);
-  LambdaCaptureConstness DefaultCaptureConstness = LCC_Implicit; // TODO
+  LambdaCaptureConstness DefaultCaptureConstness = LSI->DefaultCaptureConstness;
   CXXRecordDecl *Class = LSI->Lambda;
   CXXMethodDecl *CallOperator = LSI->CallOperator;
   SourceRange IntroducerRange = LSI->IntroducerRange;
@@ -2215,7 +2219,7 @@ ExprResult Sema::BuildLambdaExpr(SourceLocation StartLoc,
 
     // Map the capture to our AST representation.
     LambdaCapture Capture = [&] {
-      LambdaCaptureConstness Constness = LCC_Implicit; // TODO
+      LambdaCaptureConstness Constness = From.getCaptureConstness();
       if (From.isThisCapture()) {
         // Capturing 'this' implicitly with a default of '[=]' is deprecated,
         // because it results in a reference capture. Don't warn prior to

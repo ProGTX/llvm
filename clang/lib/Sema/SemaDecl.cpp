@@ -16019,11 +16019,12 @@ LambdaScopeInfo *Sema::RebuildLambdaScopeInfo(CXXMethodDecl *CallOperator) {
       if (VD->isInitCapture())
         CurrentInstantiationScope->InstantiatedLocal(VD, VD);
       const bool ByRef = C.getCaptureKind() == LCK_ByRef;
-      LSI->addCapture(VD, /*IsBlock*/false, ByRef,
-          /*RefersToEnclosingVariableOrCapture*/true, C.getLocation(),
-          /*EllipsisLoc*/C.isPackExpansion()
-                         ? C.getEllipsisLoc() : SourceLocation(),
-          I->getType(), /*Invalid*/false);
+      LSI->addCapture(VD, /*IsBlock*/ false, ByRef, C.getCaptureConstness(),
+                      /*RefersToEnclosingVariableOrCapture*/ true,
+                      C.getLocation(),
+                      /*EllipsisLoc*/ C.isPackExpansion() ? C.getEllipsisLoc()
+                                                          : SourceLocation(),
+                      I->getType(), /*Invalid*/ false);
 
     } else if (C.capturesThis()) {
       LSI->addThisCapture(/*Nested*/ false, C.getLocation(), I->getType(),

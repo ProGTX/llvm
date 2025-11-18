@@ -596,6 +596,10 @@ class Capture {
   LLVM_PREFERRED_TYPE(CaptureKind)
   unsigned Kind : 2;
 
+  // The constness specifier for this capture
+  LLVM_PREFERRED_TYPE(LambdaCaptureConstness)
+  unsigned Constness : 2;
+
   /// Whether this is a nested capture (a capture of an enclosing capturing
   /// scope's capture).
   LLVM_PREFERRED_TYPE(bool)
@@ -621,30 +625,30 @@ class Capture {
   unsigned Invalid : 1;
 
 public:
-  Capture(ValueDecl *Var, bool Block, bool ByRef, bool IsNested,
-          SourceLocation Loc, SourceLocation EllipsisLoc, QualType CaptureType,
-          bool Invalid)
+  Capture(ValueDecl *Var, bool Block, bool ByRef,
+          LambdaCaptureConstness Constness, bool IsNested, SourceLocation Loc,
+          SourceLocation EllipsisLoc, QualType CaptureType, bool Invalid)
       : CapturedVar(Var), Loc(Loc), EllipsisLoc(EllipsisLoc),
         CaptureType(CaptureType), Kind(Block   ? Cap_Block
                                        : ByRef ? Cap_ByRef
                                                : Cap_ByCopy),
-        Nested(IsNested), CapturesThis(false), ODRUsed(false),
-        NonODRUsed(false), Invalid(Invalid) {}
+        Constness(Constness), Nested(IsNested), CapturesThis(false),
+        ODRUsed(false), NonODRUsed(false), Invalid(Invalid) {}
 
   enum IsThisCapture { ThisCapture };
   Capture(IsThisCapture, bool IsNested, SourceLocation Loc,
           QualType CaptureType, const bool ByCopy, bool Invalid)
       : Loc(Loc), CaptureType(CaptureType),
-        Kind(ByCopy ? Cap_ByCopy : Cap_ByRef), Nested(IsNested),
-        CapturesThis(true), ODRUsed(false), NonODRUsed(false),
+        Kind(ByCopy ? Cap_ByCopy : Cap_ByRef), Constness(LCC_Implicit),
+        Nested(IsNested), CapturesThis(true), ODRUsed(false), NonODRUsed(false),
         Invalid(Invalid) {}
 
   enum IsVLACapture { VLACapture };
   Capture(IsVLACapture, const VariableArrayType *VLA, bool IsNested,
           SourceLocation Loc, QualType CaptureType)
       : CapturedVLA(VLA), Loc(Loc), CaptureType(CaptureType), Kind(Cap_VLA),
-        Nested(IsNested), CapturesThis(false), ODRUsed(false),
-        NonODRUsed(false), Invalid(false) {}
+        Constness(LCC_Implicit), Nested(IsNested), CapturesThis(false),
+        ODRUsed(false), NonODRUsed(false), Invalid(false) {}
 
   bool isThisCapture() const { return CapturesThis; }
   bool isVariableCapture() const {
@@ -655,6 +659,10 @@ public:
   bool isReferenceCapture() const { return Kind == Cap_ByRef; }
   bool isBlockCapture() const { return Kind == Cap_Block; }
   bool isVLATypeCapture() const { return Kind == Cap_VLA; }
+
+  LambdaCaptureConstness getCaptureConstness() const {
+    return static_cast<LambdaCaptureConstness>(Constness);
+  }
 
   bool isNested() const { return Nested; }
 
@@ -734,10 +742,11 @@ public:
   /// Packs introduced by this, if any.
   SmallVector<NamedDecl *, 4> LocalPacks;
 
-  void addCapture(ValueDecl *Var, bool isBlock, bool isByref, bool isNested,
+  void addCapture(ValueDecl *Var, bool isBlock, bool isByref,
+                  LambdaCaptureConstness Constness, bool isNested,
                   SourceLocation Loc, SourceLocation EllipsisLoc,
                   QualType CaptureType, bool Invalid) {
-    Captures.push_back(Capture(Var, isBlock, isByref, isNested, Loc,
+    Captures.push_back(Capture(Var, isBlock, isByref, Constness, isNested, Loc,
                                EllipsisLoc, CaptureType, Invalid));
     CaptureMap[Var] = Captures.size();
   }
@@ -897,6 +906,10 @@ public:
 
   /// Whether the (empty) parameter list is explicit.
   bool ExplicitParams = false;
+
+  /// Whether the default capture constness was explicit
+  /// by const/mutable, or implicit
+  LambdaCaptureConstness DefaultCaptureConstness = LCC_Implicit;
 
   /// Whether any of the capture expressions requires cleanups.
   CleanupInfo Cleanup;

@@ -7063,6 +7063,10 @@ public:
   /// \param Kind The kind of capture, which may be implicit (for either a
   /// block or a lambda), or explicit by-value or by-reference (for a lambda).
   ///
+  /// \param Constness The constness of the capture.
+  /// Can be implicit or explicit const/mutable for lambdas,
+  /// implicit for anything else.
+  ///
   /// \param EllipsisLoc The location of the ellipsis, if one is provided in
   /// an explicit lambda capture.
   ///
@@ -7088,14 +7092,16 @@ public:
   /// \returns true if an error occurred (i.e., the variable cannot be
   /// captured) and false if the capture succeeded.
   bool tryCaptureVariable(ValueDecl *Var, SourceLocation Loc,
-                          TryCaptureKind Kind, SourceLocation EllipsisLoc,
-                          bool BuildAndDiagnose, QualType &CaptureType,
-                          QualType &DeclRefType,
+                          TryCaptureKind Kind, LambdaCaptureConstness Constness,
+                          SourceLocation EllipsisLoc, bool BuildAndDiagnose,
+                          QualType &CaptureType, QualType &DeclRefType,
                           const unsigned *const FunctionScopeIndexToStopAt);
 
   /// Try to capture the given variable.
   bool tryCaptureVariable(ValueDecl *Var, SourceLocation Loc,
                           TryCaptureKind Kind = TryCaptureKind::Implicit,
+                          // TODO: Is this the correct constness?
+                          LambdaCaptureConstness Constness = LCC_Implicit,
                           SourceLocation EllipsisLoc = SourceLocation());
 
   /// Checks if the variable must be captured.
@@ -9112,7 +9118,8 @@ public:
       IdentifierInfo *Id, unsigned InitStyle, Expr *Init, DeclContext *DeclCtx);
 
   /// Add an init-capture to a lambda scope.
-  void addInitCapture(sema::LambdaScopeInfo *LSI, VarDecl *Var, bool ByRef);
+  void addInitCapture(sema::LambdaScopeInfo *LSI, VarDecl *Var, bool ByRef,
+                      LambdaCaptureConstness Constness);
 
   /// Note that we have finished the explicit captures for the
   /// given lambda.

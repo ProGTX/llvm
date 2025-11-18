@@ -7654,15 +7654,16 @@ static void CheckIfAnyEnclosingLambdasMustCaptureAnyPotentialCaptures(
       QualType CaptureType, DeclRefType;
       SourceLocation ExprLoc = VarExpr->getExprLoc();
       if (S.tryCaptureVariable(Var, ExprLoc, TryCaptureKind::Implicit,
+                               LCC_Implicit /* TODO: Is this correct? */,
                                /*EllipsisLoc*/ SourceLocation(),
                                /*BuildAndDiagnose*/ false, CaptureType,
                                DeclRefType, nullptr)) {
         // We will never be able to capture this variable, and we need
         // to be able to in any and all instantiations, so diagnose it.
-        S.tryCaptureVariable(Var, ExprLoc, TryCaptureKind::Implicit,
-                             /*EllipsisLoc*/ SourceLocation(),
-                             /*BuildAndDiagnose*/ true, CaptureType,
-                             DeclRefType, nullptr);
+        S.tryCaptureVariable(
+            Var, ExprLoc, TryCaptureKind::Implicit, LCC_Implicit,
+            /*EllipsisLoc*/ SourceLocation(),
+            /*BuildAndDiagnose*/ true, CaptureType, DeclRefType, nullptr);
       }
     }
   });

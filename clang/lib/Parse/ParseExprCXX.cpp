@@ -792,11 +792,28 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
       Action();
   };
 
+  // Start by parsing a potential const or mutable
+  LambdaCaptureConstness Constness = LCC_Implicit;
+  SourceLocation DefaultConstLoc;
+  if (Tok.is(tok::kw_const)) {
+    Constness = LCC_ExplicitConst;
+    DefaultConstLoc = ConsumeToken();
+  } else if (Tok.is(tok::kw_mutable)) {
+    Constness = LCC_ExplicitMutable;
+    DefaultConstLoc = ConsumeToken();
+  }
+
   // Parse capture-default.
   if (Tok.is(tok::amp) &&
       (NextToken().is(tok::comma) || NextToken().is(tok::r_square))) {
     Intro.Default = LCD_ByRef;
-    Intro.DefaultLoc = ConsumeToken();
+    if (Constness == LCC_Implicit) {
+      Intro.DefaultLoc = ConsumeToken();
+    } else {
+      Intro.DefaultLoc = std::exchange(DefaultConstLoc, {});
+      Intro.DefaultCaptureConstness = Constness;
+      ConsumeToken();
+    }
     First = false;
     if (!Tok.getIdentifierInfo()) {
       // This can only be a lambda; no need for tentative parsing any more.
@@ -805,7 +822,16 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
     }
   } else if (Tok.is(tok::equal)) {
     Intro.Default = LCD_ByCopy;
-    Intro.DefaultLoc = ConsumeToken();
+    if (Constness == LCC_Implicit) {
+      Intro.DefaultLoc = ConsumeToken();
+    } else {
+      // Cannot use `const=` or `mutable=` because the constness of the
+      // value capture is specified by the constness of the lambda body.
+      // TODO: New error
+      return Result([&] {
+        Diag(Tok.getLocation(), diag::err_expected_comma_or_rsquare);
+      });
+    }
     First = false;
     Tentative = nullptr;
   }
@@ -850,7 +876,6 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
 
     // Parse capture.
     LambdaCaptureKind Kind = LCK_ByCopy;
-    LambdaCaptureConstness Constness = LCC_Implicit; // TODO
     LambdaCaptureInitKind InitKind = LambdaCaptureInitKind::NoInit;
     SourceLocation Loc;
     IdentifierInfo *Id = nullptr;
@@ -858,7 +883,28 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
     ExprResult Init;
     SourceLocation LocStart = Tok.getLocation();
 
+    if (DefaultConstLoc.isValid()) {
+      // This can only happen when parsing the first capture
+      // where const/mutable did not apply to default capture.
+      assert(Constness != LCC_Implicit);
+      Loc = std::exchange(DefaultConstLoc, {});
+    } else if (Tok.is(tok::kw_const)) {
+      Constness = LCC_ExplicitConst;
+      Loc = ConsumeToken();
+    } else if (Tok.is(tok::kw_mutable)) {
+      Constness = LCC_ExplicitMutable;
+      Loc = ConsumeToken();
+    } else {
+      Constness = LCC_Implicit;
+    }
+
     if (Tok.is(tok::star)) {
+      if (Constness != LCC_Implicit) {
+        // TODO: New error
+        return Result([&] {
+          Diag(Tok.getLocation(), diag::err_expected_star_this_capture);
+        });
+      }
       Loc = ConsumeToken();
       if (Tok.is(tok::kw_this)) {
         ConsumeToken();
@@ -869,6 +915,12 @@ bool Parser::ParseLambdaIntroducer(LambdaIntroducer &Intro,
         });
       }
     } else if (Tok.is(tok::kw_this)) {
+      if (Constness != LCC_Implicit) {
+        // TODO: New error
+        return Result([&] {
+          Diag(Tok.getLocation(), diag::err_expected_star_this_capture);
+        });
+      }
       Kind = LCK_This;
       Loc = ConsumeToken();
     } else if (Tok.isOneOf(tok::amp, tok::equal) &&

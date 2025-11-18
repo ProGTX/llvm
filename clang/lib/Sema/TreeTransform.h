@@ -15706,7 +15706,8 @@ TreeTransform<Derived>::TransformLambdaExpr(LambdaExpr *E) {
           break;
         }
         NewVDs.push_back(NewVD);
-        getSema().addInitCapture(LSI, NewVD, C->getCaptureKind() == LCK_ByRef);
+        getSema().addInitCapture(LSI, NewVD, C->getCaptureKind() == LCK_ByRef,
+                                 C->getCaptureConstness());
         // Cases we want to tackle:
         //   ([C(Pack)] {}, ...)
         // But rule out cases e.g.
@@ -15759,7 +15760,8 @@ TreeTransform<Derived>::TransformLambdaExpr(LambdaExpr *E) {
           }
 
           // Capture the transformed variable.
-          getSema().tryCaptureVariable(CapturedVar, C->getLocation(), Kind);
+          getSema().tryCaptureVariable(CapturedVar, C->getLocation(), Kind,
+                                       C->getCaptureConstness());
         }
 
         // FIXME: Retain a pack expansion if RetainExpansion is true.
@@ -15785,7 +15787,7 @@ TreeTransform<Derived>::TransformLambdaExpr(LambdaExpr *E) {
 
     // Capture the transformed variable.
     getSema().tryCaptureVariable(CapturedVar, C->getLocation(), Kind,
-                                 EllipsisLoc);
+                                 C->getCaptureConstness(), EllipsisLoc);
   }
   getSema().finishLambdaExplicitCaptures(LSI);
 

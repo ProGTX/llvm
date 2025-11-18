@@ -5746,8 +5746,8 @@ static CapturedStmt *buildLoopVarFunc(Sema &Actions, QualType LoopVarTy,
   // zero's logical iteration. Since the original ForStmt/CXXForRangeStmt update
   // it in every iteration, capture it by value before it is modified.
   VarDecl *StartVar = cast<VarDecl>(StartExpr->getDecl());
-  bool Invalid = Actions.tryCaptureVariable(StartVar, {},
-                                            TryCaptureKind::ExplicitByVal, {});
+  bool Invalid = Actions.tryCaptureVariable(
+      StartVar, {}, TryCaptureKind::ExplicitByVal, LCC_Implicit, {});
   (void)Invalid;
   assert(!Invalid && "Expecting capture-by-value to work.");
 
