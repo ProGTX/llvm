@@ -62,11 +62,11 @@ int main() {
   { // Invalid code
 
     // TODO: Better errors
-    [mutable = ] {}; // expected-error{{}}
-    [const = ] {}; // expected-error{{}}
+    [mutable = ] {};     // expected-error{{}}
+    [const = ] {};       // expected-error{{}}
     [] const mutable {}; // expected-error{{}}
     [] mutable const {}; // expected-error{{}}
-    [] static const {}; // expected-error{{}}
+    [] static const {};  // expected-error{{lambda cannot be both}}
 
     // TODO: More checks
   }

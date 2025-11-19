@@ -18867,12 +18867,24 @@ static bool isVariableAlreadyCapturedInScopeInfo(CapturingScopeInfo *CSI,
     //   The type of such a data member is [...] an lvalue reference to the
     //   referenced function type if the entity is a reference to a function.
     //   [...]
-    if (Cap.isCopyCapture() && !DeclRefType->isFunctionType() &&
+    LambdaCaptureConstness CaptureConstness = Cap.getCaptureConstness();
+    if (Cap.isCopyCapture() && (CaptureConstness != LCC_ExplicitMutable) &&
+        !DeclRefType->isFunctionType() &&
         !(isa<LambdaScopeInfo>(CSI) &&
-          !cast<LambdaScopeInfo>(CSI)->lambdaCaptureShouldBeConst()) &&
+          !((CaptureConstness == LCC_ExplicitConst) ||
+            cast<LambdaScopeInfo>(CSI)->lambdaCaptureShouldBeConst())) &&
         !(isa<CapturedRegionScopeInfo>(CSI) &&
-          cast<CapturedRegionScopeInfo>(CSI)->CapRegionKind == CR_OpenMP))
+          cast<CapturedRegionScopeInfo>(CSI)->CapRegionKind == CR_OpenMP)) {
       DeclRefType.addConst();
+    } else if (Cap.isReferenceCapture() &&
+               ((CaptureConstness == LCC_ExplicitConst) ||
+                ((CaptureConstness == LCC_Implicit) &&
+                 !(isa<LambdaScopeInfo>(CSI) &&
+                   !(cast<LambdaScopeInfo>(CSI)->DefaultCaptureConstness ==
+                     LCC_ExplicitConst))))) {
+      assert(isa<LambdaScopeInfo>(CSI));
+      DeclRefType.addConst();
+    }
     return true;
   }
   return false;
@@ -19170,9 +19182,14 @@ static bool captureInLambda(LambdaScopeInfo *LSI, ValueDecl *Var,
   }
 
   // Compute the type of a reference to this captured variable.
-  if (ByRef)
+  if (ByRef) {
     DeclRefType = CaptureType.getNonReferenceType();
-  else {
+    if ((Constness == LCC_ExplicitConst) ||
+        ((Constness == LCC_Implicit) &&
+         (LSI->DefaultCaptureConstness == LCC_ExplicitConst))) {
+      DeclRefType.addConst();
+    }
+  } else {
     // C++ [expr.prim.lambda]p5:
     //   The closure type for a lambda-expression has a public inline
     //   function call operator [...]. This function call operator is
@@ -19185,7 +19202,7 @@ static bool captureInLambda(LambdaScopeInfo *LSI, ValueDecl *Var,
     //   referenced function type if the entity is a reference to a function.
     //   [...]
     if (Const && !CaptureType->isReferenceType() &&
-        !DeclRefType->isFunctionType())
+        !DeclRefType->isFunctionType() && (Constness != LCC_ExplicitMutable))
       DeclRefType.addConst();
   }
 
