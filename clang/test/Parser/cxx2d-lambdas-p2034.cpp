@@ -65,13 +65,17 @@ int main() {
     // TODO: Better errors
     [mutable = ] {};     // expected-error{{}}
     [const = ] {};       // expected-error{{}}
-    [] const mutable {}; // expected-error{{}}
-    [] mutable const {}; // expected-error{{}}
+    [] const const {};   // expected-error{{cannot appear multiple times}}
+    [] const mutable {}; // expected-error{{lambda cannot be both}}
+    [] mutable const {}; // expected-error{{lambda cannot be both mutable}}
+    [] const static {};  // expected-error{{lambda cannot be both}}
     [] static const {};  // expected-error{{lambda cannot be both}}
-    [&, &x] {};          // expected-error{{'&' cannot precede a capture when}}
-    [&, &x] {};          // expected-error{{'&' cannot precede a capture when}}
-    [const &, &x] {};    // expected-error{{'&' cannot precede a capture when}}
-    [mutable &, &x] {};  // expected-error{{'&' cannot precede a capture when}}
+    [&, &x] {};          // expected-error{{when the capture default is '&'}}
+    [const &, &x] {};    // expected-error{{when the capture default is '&'}}
+    [mutable &, &x] {};  // expected-error{{when the capture default is '&'}}
+    [=, x] {};           // expected-error{{when the capture default is '='}}
+    [=, x] mutable {};   // expected-error{{when the capture default is '='}}
+    [=, x] const {};     // expected-error{{when the capture default is '='}}
 
     // TODO: More checks
   }
@@ -80,17 +84,32 @@ int main() {
     [&, mutable & y, const & z] {
       x += 1; // OK
       y += 1; // OK
-      z += 1; // expected-error{{}}
+      z += 1; // expected-error{{cannot assign to a variable}}
     };
     [mutable &, mutable & y, const & z] {
       x += 1; // OK
       y += 1; // OK
-      z += 1; // expected-error{{}}
+      z += 1; // expected-error{{cannot assign to a variable}}
     };
-    [const &, mutable & y, const & z] { 
-      x += 1; // expected-error{{}}
+    [const &, mutable & y, const & z] {
+      x += 1; // expected-error{{cannot assign to a variable}}
       y += 1; // OK
-      z += 1; // expected-error{{}}
+      z += 1; // expected-error{{cannot assign to a variable}}
+    };
+    [=, mutable y, const z] {
+      x += 1; // expected-error{{cannot assign to a variable}}
+      y += 1; // OK
+      z += 1; // expected-error{{cannot assign to a variable}}
+    };
+    [=, mutable y, const z] const {
+      x += 1; // expected-error{{cannot assign to a variable}}
+      y += 1; // OK
+      z += 1; // expected-error{{cannot assign to a variable}}
+    };
+    [=, mutable y, const z] mutable {
+      x += 1; // OK
+      y += 1; // OK
+      z += 1; // expected-error{{cannot assign to a variable}}
     };
   }
 }

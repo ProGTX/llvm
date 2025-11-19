@@ -1176,16 +1176,16 @@ static void tryConsumeLambdaSpecifierToken(Parser &P, SourceLocation &ConstLoc,
       ConsumeLocation(ConstLoc, 0);
       break;
     case tok::kw_mutable:
-      ConsumeLocation(MutableLoc, 0);
+      ConsumeLocation(MutableLoc, 1);
       break;
     case tok::kw_static:
-      ConsumeLocation(StaticLoc, 1);
+      ConsumeLocation(StaticLoc, 2);
       break;
     case tok::kw_constexpr:
-      ConsumeLocation(ConstexprLoc, 2);
+      ConsumeLocation(ConstexprLoc, 3);
       break;
     case tok::kw_consteval:
-      ConsumeLocation(ConstevalLoc, 3);
+      ConsumeLocation(ConstevalLoc, 4);
       break;
     default:
       return;
@@ -1248,6 +1248,7 @@ static void DiagnoseStaticSpecifierRestrictions(Parser &P,
     // Cannot specify both const and mutable on a lambda
     // TODO: New error
     P.Diag(ConstLoc, diag::err_static_mutable_lambda);
+    return;
   }
 
   if (StaticLoc.isInvalid())
@@ -1417,7 +1418,7 @@ ExprResult Parser::ParseLambdaExpressionAfterIntroducer(
                   tok::kw_constexpr, tok::kw_consteval, tok::kw_static,
                   tok::kw___private, tok::kw___global, tok::kw___local,
                   tok::kw___constant, tok::kw___generic, tok::kw_groupshared,
-                  tok::kw_requires, tok::kw_noexcept) ||
+                  tok::kw_requires, tok::kw_noexcept, tok::kw_const) ||
       Tok.isRegularKeywordAttribute() ||
       (Tok.is(tok::l_square) && NextToken().is(tok::l_square));
 
