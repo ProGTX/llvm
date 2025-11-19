@@ -15994,8 +15994,6 @@ LambdaScopeInfo *Sema::RebuildLambdaScopeInfo(CXXMethodDecl *CallOperator) {
   if (FunctionTemplateDecl *FTD = CallOperator->getDescribedFunctionTemplate())
     LSI->GLTemplateParameterList = FTD->getTemplateParameters();
   const LambdaCaptureDefault LCD = LambdaClass->getLambdaCaptureDefault();
-  const LambdaCaptureConstness LDCC =
-      LambdaClass->getLambdaDefaultCaptureConstness(); // TODO
 
   if (LCD == LCD_None)
     LSI->ImpCaptureStyle = CapturingScopeInfo::ImpCap_None;
@@ -16003,8 +16001,10 @@ LambdaScopeInfo *Sema::RebuildLambdaScopeInfo(CXXMethodDecl *CallOperator) {
     LSI->ImpCaptureStyle = CapturingScopeInfo::ImpCap_LambdaByval;
   else if (LCD == LCD_ByRef)
     LSI->ImpCaptureStyle = CapturingScopeInfo::ImpCap_LambdaByref;
-  DeclarationNameInfo DNI = CallOperator->getNameInfo();
 
+  LSI->DefaultCaptureConstness =
+      LambdaClass->getLambdaDefaultCaptureConstness();
+  DeclarationNameInfo DNI = CallOperator->getNameInfo();
   LSI->IntroducerRange = DNI.getCXXOperatorNameRange();
   LSI->Mutable = !CallOperator->isConst();
   if (CallOperator->isExplicitObjectMemberFunction())

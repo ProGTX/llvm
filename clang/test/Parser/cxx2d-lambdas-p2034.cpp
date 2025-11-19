@@ -1,4 +1,4 @@
-// RUN: %clang_cc1 -std=c++26 %s -verify
+// RUN: %clang_cc1 -std=c++26 %s -verify -Wno-unused-value
 
 template <class T> struct remove_reference {
   typedef T type;
@@ -25,9 +25,10 @@ template <class... Args> auto delay_invoke_foo(Args... args, State s) {
 int main() {
   int x = 1;
   int y = 2;
-  int s = 3;
-  int b = 4;
-  State huge{5};
+  int z = 3;
+  int s = 4;
+  int b = 5;
+  State huge{6};
 
   { // Valid code proposed by P2034R5
 
@@ -67,7 +68,29 @@ int main() {
     [] const mutable {}; // expected-error{{}}
     [] mutable const {}; // expected-error{{}}
     [] static const {};  // expected-error{{lambda cannot be both}}
+    [&, &x] {};          // expected-error{{'&' cannot precede a capture when}}
+    [&, &x] {};          // expected-error{{'&' cannot precede a capture when}}
+    [const &, &x] {};    // expected-error{{'&' cannot precede a capture when}}
+    [mutable &, &x] {};  // expected-error{{'&' cannot precede a capture when}}
 
     // TODO: More checks
+  }
+  { // More test cases
+
+    [&, mutable & y, const & z] {
+      x += 1; // OK
+      y += 1; // OK
+      z += 1; // expected-error{{}}
+    };
+    [mutable &, mutable & y, const & z] {
+      x += 1; // OK
+      y += 1; // OK
+      z += 1; // expected-error{{}}
+    };
+    [const &, mutable & y, const & z] { 
+      x += 1; // expected-error{{}}
+      y += 1; // OK
+      z += 1; // expected-error{{}}
+    };
   }
 }

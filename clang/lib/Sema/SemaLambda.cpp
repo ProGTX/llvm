@@ -1248,15 +1248,23 @@ void Sema::ActOnLambdaExpressionAfterIntroducer(LambdaIntroducer &Intro,
       //   identifiers in the lambda-capture shall not be preceded by &.
       //   If a lambda-capture includes a capture-default that is =, [...]
       //   each identifier it contains shall be preceded by &.
-      if (C->Kind == LCK_ByRef && Intro.Default == LCD_ByRef) {
+      // P2034R5: It's not clear from the proposal what happens in this case.
+      //   I'm going to assume it's OK to specify captures
+      //   as long as they have an explicit constness qualifier.
+      //   I believe this is the correct choice because explicit qualifiers
+      //   on explicit captures have the highest precedence,
+      //   so they specify the intent very clearly.
+      if (C->Kind == LCK_ByRef && Intro.Default == LCD_ByRef &&
+          C->Constness == LCC_Implicit) {
         Diag(C->Loc, diag::err_reference_capture_with_reference_default)
             << FixItHint::CreateRemoval(
-                SourceRange(getLocForEndOfToken(PrevCaptureLoc), C->Loc));
+                   SourceRange(getLocForEndOfToken(PrevCaptureLoc), C->Loc));
         continue;
-      } else if (C->Kind == LCK_ByCopy && Intro.Default == LCD_ByCopy) {
+      } else if (C->Kind == LCK_ByCopy && Intro.Default == LCD_ByCopy &&
+                 C->Constness == LCC_Implicit) {
         Diag(C->Loc, diag::err_copy_capture_with_copy_default)
             << FixItHint::CreateRemoval(
-                SourceRange(getLocForEndOfToken(PrevCaptureLoc), C->Loc));
+                   SourceRange(getLocForEndOfToken(PrevCaptureLoc), C->Loc));
         continue;
       }
 
